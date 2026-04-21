@@ -135,9 +135,31 @@ app.get('/student', authenticate, (req, res) =>
     res.render('student_dashboard.html', { user: req.user })
 );
 
-// Optional pages (your structure supports them)
-app.get('/landing', (req, res) => res.render('landing.html'));
-app.get('/courses', authenticate, (req, res) => res.render('mycourses.html'));
+// ✅ FIXED ROUTES (IMPORTANT)
+
+app.get('/mycourses', authenticate, (req, res) =>
+    res.render('mycourses.html')
+);
+
+app.get('/learning-path', authenticate, (req, res) =>
+    res.render('learning_path.html')
+);
+
+app.get('/learning-dna', authenticate, (req, res) =>
+    res.render('learning_dna.html')
+);
+
+app.get('/ai-tutor', authenticate, (req, res) =>
+    res.render('ai_tutor.html')
+);
+
+app.get('/gamification', authenticate, (req, res) =>
+    res.render('gamification.html')
+);
+
+app.get('/settings', authenticate, (req, res) =>
+    res.render('settings.html')
+);
 
 // ================= EXPORT =================
 module.exports = serverless(app);
