@@ -17,7 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // ================= DB =================
-const db = new sqlite3.Database(':memory:');
+const db = new sqlite3.Database('database.sqlite');
 
 db.serialize(() => {
     db.run(`
