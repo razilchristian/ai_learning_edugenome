@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
-const Database = require('better-sqlite3');
+const mongoose = require('mongoose');
 const serverless = require('serverless-http');
 
 dotenv.config();
@@ -15,20 +15,22 @@ const app = express();
 // ================= ENV =================
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const MONGO_URI = process.env.MONGO_URI;
 
-// ================= DB =================
-const db = new Database(':memory:');
+// ================= MONGODB CONNECTION =================
+mongoose.connect(MONGO_URI)
+    .then(() => console.log("MongoDB connected"))
+    .catch(err => console.log(err));
 
-// ✅ CREATE TABLE (FIXED)
-db.prepare(`
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        email TEXT UNIQUE,
-        password TEXT,
-        role TEXT
-    )
-`).run();
+// ================= USER MODEL =================
+const UserSchema = new mongoose.Schema({
+    name: String,
+    email: { type: String, unique: true },
+    password: String,
+    role: String
+});
+
+const User = mongoose.model('User', UserSchema);
 
 // ================= MIDDLEWARE =================
 app.use(express.json());
@@ -62,17 +64,19 @@ app.get('/', (req, res) => {
 
 // ================= API =================
 
-// ✅ REGISTER (FIXED)
+// ✅ REGISTER with MongoDB
 app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
 
         const hashed = await bcrypt.hash(password, 10);
 
-        db.prepare(`
-            INSERT INTO users (name,email,password,role)
-            VALUES (?,?,?,?)
-        `).run(name, email, hashed, role || 'student');
+        await User.create({
+            name,
+            email,
+            password: hashed,
+            role: role || 'student'
+        });
 
         res.json({ message: 'User created' });
 
@@ -81,14 +85,12 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// ✅ LOGIN (FIXED)
+// ✅ LOGIN with MongoDB
 app.post('/api/login', async (req, res) => {
     const { email, password, role } = req.body;
 
     try {
-        const user = db.prepare(
-            "SELECT * FROM users WHERE email=?"
-        ).get(email);
+        const user = await User.findOne({ email });
 
         if (!user) return res.status(401).json({ error: 'Invalid login' });
 
@@ -101,7 +103,7 @@ app.post('/api/login', async (req, res) => {
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.status(401).json({ error: 'Invalid login' });
 
-        const token = jwt.sign(user, JWT_SECRET);
+        const token = jwt.sign(user.toObject(), JWT_SECRET);
         res.cookie('token', token, { httpOnly: true });
 
         let redirect = '/student';
