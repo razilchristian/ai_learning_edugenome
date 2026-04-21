@@ -34,12 +34,12 @@ db.prepare(`
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use('/static', express.static(path.join(__dirname, '../static')));
 
 // ================= VIEWS =================
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
-app.set('views', path.join(__dirname, 'templates'));
+app.set('views', path.join(__dirname, '../templates'));
 
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
