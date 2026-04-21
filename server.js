@@ -56,9 +56,9 @@ const authenticate = (req, res, next) => {
     }
 };
 
-// ================= ROOT (FIXED UI) =================
+// ================= ROOT =================
 app.get('/', (req, res) => {
-    res.redirect('/login'); // 👈 now UI loads directly
+    res.redirect('/login');
 });
 
 // ================= API =================
@@ -84,7 +84,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Login
+// ✅ FIXED LOGIN (ROLE BASED)
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -97,11 +97,19 @@ app.post('/api/login', (req, res) => {
         const token = jwt.sign(user, JWT_SECRET);
         res.cookie('token', token, { httpOnly: true });
 
-        res.json({ message: 'Login success' });
+        let redirect = '/student';
+        if (user.role === 'teacher') redirect = '/teacher';
+        if (user.role === 'admin') redirect = '/admin';
+
+        res.json({
+            message: 'Login success',
+            role: user.role,
+            redirect
+        });
     });
 });
 
-// Chat
+// Chat (AI)
 app.post('/api/chat', authenticate, async (req, res) => {
     try {
         const { system, messages } = req.body;
@@ -131,39 +139,51 @@ app.post('/api/chat', authenticate, async (req, res) => {
 
 app.get('/login', (req, res) => res.render('login.html'));
 
+// ✅ STUDENT
 app.get('/student', authenticate, (req, res) =>
     res.render('student_dashboard.html', { user: req.user })
 );
 
-// ✅ FIXED ROUTES (IMPORTANT)
+// ✅ TEACHER
+app.get('/teacher', authenticate, (req, res) =>
+    res.render('teacher_dashboard.html', { user: req.user })
+);
+
+// ✅ ADMIN (optional)
+app.get('/admin', authenticate, (req, res) =>
+    res.render('admin_dashboard.html', { user: req.user })
+);
+
+// ✅ ALL PAGES (FIXED WITH USER)
 
 app.get('/mycourses', authenticate, (req, res) =>
-    res.render('mycourses.html')
+    res.render('mycourses.html', { user: req.user })
 );
 
 app.get('/learning-path', authenticate, (req, res) =>
-    res.render('learning_path.html')
+    res.render('learning_path.html', { user: req.user })
 );
 
 app.get('/learning-dna', authenticate, (req, res) =>
-    res.render('learning_dna.html')
+    res.render('learning_dna.html', { user: req.user })
 );
 
 app.get('/ai-tutor', authenticate, (req, res) =>
-    res.render('ai_tutor.html')
+    res.render('ai_tutor.html', { user: req.user })
 );
 
-app.get('/gamification', authenticate, (req, res) => {
-    res.render('gamification.html', { user: req.user });
-});
-app.get('/settings', authenticate, (req, res) => {
-    res.render('settings.html', { user: req.user });
-});
+app.get('/gamification', authenticate, (req, res) =>
+    res.render('gamification.html', { user: req.user })
+);
+
+app.get('/settings', authenticate, (req, res) =>
+    res.render('settings.html', { user: req.user })
+);
 
 // ================= EXPORT =================
 module.exports = serverless(app);
 
-// ================= LOCALHOST =================
+// ================= LOCAL =================
 if (process.env.NODE_ENV !== 'production') {
     const PORT = 3000;
 
