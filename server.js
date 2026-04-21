@@ -169,9 +169,4 @@ app.post('/predict-risk', authenticate, (req, res) => {
 
 app.get('/admin', authenticate, (req, res) => res.render('admin_dashboard.html', { user: req.user }));
 
-if (require.main === module) {
-    app.listen(PORT, () => {
-        console.log(`Server is running on http://localhost:${PORT}`);
-    });
-}
 module.exports = app;
