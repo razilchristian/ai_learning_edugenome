@@ -16,10 +16,6 @@ const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-if (!GEMINI_API_KEY) {
-    console.warn('⚠️ GEMINI_API_KEY missing');
-}
-
 // ================= DB =================
 const db = new sqlite3.Database(':memory:');
 
@@ -60,9 +56,9 @@ const authenticate = (req, res, next) => {
     }
 };
 
-// ================= ROOT =================
+// ================= ROOT (FIXED UI) =================
 app.get('/', (req, res) => {
-    res.send("EduGenome is running 🚀");
+    res.redirect('/login'); // 👈 now UI loads directly
 });
 
 // ================= API =================
@@ -72,10 +68,6 @@ app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
 
-        if (!name || !email || !password) {
-            return res.status(400).json({ error: "Missing fields" });
-        }
-
         const hashed = await bcrypt.hash(password, 10);
 
         db.run(
@@ -83,7 +75,7 @@ app.post('/api/register', async (req, res) => {
             [name, email, hashed, role || 'student'],
             function (err) {
                 if (err) return res.status(400).json({ error: err.message });
-                res.json({ message: 'User created', id: this.lastID });
+                res.json({ message: 'User created' });
             }
         );
 
@@ -97,21 +89,15 @@ app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
     db.get(`SELECT * FROM users WHERE email=?`, [email], async (err, user) => {
-        if (err) return res.status(500).json({ error: 'DB error' });
         if (!user) return res.status(401).json({ error: 'Invalid login' });
 
-        try {
-            const match = await bcrypt.compare(password, user.password);
-            if (!match) return res.status(401).json({ error: 'Invalid login' });
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return res.status(401).json({ error: 'Invalid login' });
 
-            const token = jwt.sign(user, JWT_SECRET);
+        const token = jwt.sign(user, JWT_SECRET);
+        res.cookie('token', token, { httpOnly: true });
 
-            res.cookie('token', token, { httpOnly: true });
-            res.json({ message: 'Login success' });
-
-        } catch {
-            res.status(500).json({ error: 'Login failed' });
-        }
+        res.json({ message: 'Login success' });
     });
 });
 
@@ -137,12 +123,11 @@ app.post('/api/chat', authenticate, async (req, res) => {
         res.json({ text });
 
     } catch (err) {
-        console.error("Chat error:", err.message);
         res.status(500).json({ error: "AI error" });
     }
 });
 
-// ================= PAGES =================
+// ================= UI ROUTES =================
 
 app.get('/login', (req, res) => res.render('login.html'));
 
@@ -150,7 +135,11 @@ app.get('/student', authenticate, (req, res) =>
     res.render('student_dashboard.html', { user: req.user })
 );
 
-// ================= EXPORT (VERCEL) =================
+// Optional pages (your structure supports them)
+app.get('/landing', (req, res) => res.render('landing.html'));
+app.get('/courses', authenticate, (req, res) => res.render('mycourses.html'));
+
+// ================= EXPORT =================
 module.exports = serverless(app);
 
 // ================= LOCALHOST =================
