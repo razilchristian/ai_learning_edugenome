@@ -153,10 +153,9 @@ app.get('/ai-tutor', authenticate, (req, res) =>
     res.render('ai_tutor.html')
 );
 
-app.get('/gamification', authenticate, (req, res) =>
-    res.render('gamification.html')
-);
-
+app.get('/gamification', authenticate, (req, res) => {
+    res.render('gamification.html', { user: req.user });
+});
 app.get('/settings', authenticate, (req, res) =>
     res.render('settings.html')
 );
