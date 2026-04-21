@@ -39,9 +39,7 @@ app.use(cookieParser());
 app.use('/static', express.static(path.join(__dirname, '../static')));
 
 // ================= VIEWS =================
-app.engine('html', require('ejs').renderFile);
-app.set('view engine', 'html');
-app.set('views', path.join(__dirname, '../templates'));
+// No longer using ejs render, using sendFile instead
 
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
@@ -59,7 +57,7 @@ const authenticate = (req, res, next) => {
 
 // ================= ROOT =================
 app.get('/', (req, res) => {
-    res.redirect('/login');
+    res.sendFile(path.join(__dirname, '../templates/login.html'));
 });
 
 // ================= API =================
@@ -147,57 +145,58 @@ app.post('/api/chat', authenticate, async (req, res) => {
     }
 });
 
-// ================= UI ROUTES =================
+// ================= UI ROUTES (USING SENDFILE) =================
 
-// ROOT → login page
-app.get('/', (req, res) => {
-    res.render('login.html');
-});
-
-// Login
+// Login page
 app.get('/login', (req, res) => {
-    res.render('login.html');
+    res.sendFile(path.join(__dirname, '../templates/login.html'));
 });
 
-// Student
+// Student dashboard
 app.get('/student', authenticate, (req, res) => {
-    res.render('student_dashboard.html', { user: req.user });
+    res.sendFile(path.join(__dirname, '../templates/student_dashboard.html'));
 });
 
-// Teacher
+// Teacher dashboard
 app.get('/teacher', authenticate, (req, res) => {
-    res.render('teacher_dashboard.html', { user: req.user });
+    res.sendFile(path.join(__dirname, '../templates/teacher_dashboard.html'));
 });
 
-// Admin
+// Admin dashboard
 app.get('/admin', authenticate, (req, res) => {
-    res.render('admin_dashboard.html', { user: req.user });
+    res.sendFile(path.join(__dirname, '../templates/admin_dashboard.html'));
 });
 
-// Other pages
+// My Courses page
 app.get('/mycourses', authenticate, (req, res) => {
-    res.render('mycourses.html', { user: req.user });
+    res.sendFile(path.join(__dirname, '../templates/mycourses.html'));
 });
 
+// Learning Path page
 app.get('/learning-path', authenticate, (req, res) => {
-    res.render('learning_path.html', { user: req.user });
+    res.sendFile(path.join(__dirname, '../templates/learning_path.html'));
 });
 
+// Learning DNA page
 app.get('/learning-dna', authenticate, (req, res) => {
-    res.render('learning_dna.html', { user: req.user });
+    res.sendFile(path.join(__dirname, '../templates/learning_dna.html'));
 });
 
+// AI Tutor page
 app.get('/ai-tutor', authenticate, (req, res) => {
-    res.render('ai_tutor.html', { user: req.user });
+    res.sendFile(path.join(__dirname, '../templates/ai_tutor.html'));
 });
 
+// Gamification page
 app.get('/gamification', authenticate, (req, res) => {
-    res.render('gamification.html', { user: req.user });
+    res.sendFile(path.join(__dirname, '../templates/gamification.html'));
 });
 
+// Settings page
 app.get('/settings', authenticate, (req, res) => {
-    res.render('settings.html', { user: req.user });
+    res.sendFile(path.join(__dirname, '../templates/settings.html'));
 });
+
 // ================= EXPORT =================
 module.exports = serverless(app);
 
