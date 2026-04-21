@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const serverless = require('serverless-http');
 
 dotenv.config();
@@ -17,7 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // ================= DB =================
-const db = new sqlite3.Database(':memory:');
+const db = new Database('database.sqlite');
 
 db.serialize(() => {
     db.run(`
