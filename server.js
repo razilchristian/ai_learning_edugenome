@@ -84,28 +84,43 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// ✅ FIXED LOGIN (ROLE BASED)
+// ✅ FINAL LOGIN (ROLE + REDIRECT FIXED)
 app.post('/api/login', (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     db.get(`SELECT * FROM users WHERE email=?`, [email], async (err, user) => {
+        if (err) return res.status(500).json({ error: 'DB error' });
         if (!user) return res.status(401).json({ error: 'Invalid login' });
 
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) return res.status(401).json({ error: 'Invalid login' });
+        // 🔥 ROLE VALIDATION (IMPORTANT)
+        if (user.role !== role) {
+            return res.status(401).json({
+                error: `You are registered as ${user.role}, not ${role}`
+            });
+        }
 
-        const token = jwt.sign(user, JWT_SECRET);
-        res.cookie('token', token, { httpOnly: true });
+        try {
+            const match = await bcrypt.compare(password, user.password);
+            if (!match) return res.status(401).json({ error: 'Invalid login' });
 
-        let redirect = '/student';
-        if (user.role === 'teacher') redirect = '/teacher';
-        if (user.role === 'admin') redirect = '/admin';
+            // 🔐 Token
+            const token = jwt.sign(user, JWT_SECRET);
+            res.cookie('token', token, { httpOnly: true });
 
-        res.json({
-            message: 'Login success',
-            role: user.role,
-            redirect
-        });
+            // 🚀 Redirect based on role
+            let redirect = '/student';
+            if (user.role === 'teacher') redirect = '/teacher';
+            else if (user.role === 'admin') redirect = '/admin';
+
+            res.json({
+                message: 'Login success',
+                role: user.role,
+                redirect
+            });
+
+        } catch (e) {
+            res.status(500).json({ error: 'Login failed' });
+        }
     });
 });
 
