@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - Admin Dashboard</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/admin"><button class="nav-btn active"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/admin"><button class="nav-btn"><i data-lucide="users" style="width:16px;height:16px"></i>User Management</button></a>
+      <a href="/admin"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>Course Management</button></a>
+      <a href="/admin"><button class="nav-btn"><i data-lucide="bar-chart-3" style="width:16px;height:16px"></i>System Analytics</button></a>
+      <a href="/admin"><button class="nav-btn"><i data-lucide="cpu" style="width:16px;height:16px"></i>AI Model Monitor</button></a>
+      <a href="/admin"><button class="nav-btn"><i data-lucide="settings" style="width:16px;height:16px"></i>Settings</button></a>
+    </nav>
+    <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div class="input-wrap" style="max-width:400px;flex:1">
+        <i data-lucide="search" class="input-icon" style="width:16px;height:16px"></i>
+        <input class="input" placeholder="Search users, courses, analytics...">
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon relative"><i data-lucide="bell" style="width:20px;height:20px"></i><span class="notif-dot"></span></button>
+        <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=admin" alt="Avatar"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div>
+        <h1 class="font-bold" style="font-size:28px;color:#1e1b4b">Admin Dashboard</h1>
+        <p class="text-slate-600 mt-1">Platform overview and system management</p>
+      </div>
+
+      <div class="metric-cards">
+        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">Total Students</p><p class="font-bold" style="font-size:28px">1,680</p><p class="text-xs text-green mt-1">↑ 10.5% this month</p></div><i data-lucide="users" style="width:40px;height:40px;color:var(--primary)"></i></div></div></div>
+        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">Total Teachers</p><p class="font-bold" style="font-size:28px">68</p><p class="text-xs text-green mt-1">↑ 4.6% this month</p></div><i data-lucide="graduation-cap" style="width:40px;height:40px;color:var(--accent)"></i></div></div></div>
+        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">Active Courses</p><p class="font-bold" style="font-size:28px">42</p><p class="text-xs text-green mt-1">↑ 5 new courses</p></div><i data-lucide="book-open" style="width:40px;height:40px;color:#16a34a"></i></div></div></div>
+        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">System Health</p><p class="font-bold text-green" style="font-size:28px">99.8%</p><p class="text-xs text-green mt-1">All systems operational</p></div><i data-lucide="activity" style="width:40px;height:40px;color:#16a34a"></i></div></div></div>
+      </div>
+
+      <div class="grid-2col">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i data-lucide="trending-up" style="width:20px;height:20px;color:var(--primary)"></i>User Growth Trend</div><div class="card-desc">Student and teacher enrollment over time</div></div>
+          <div class="card-content"><canvas id="growthChart" height="220"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i data-lucide="book-open" style="width:20px;height:20px;color:var(--accent)"></i>Course Enrollment Stats</div><div class="card-desc">Top courses by enrollment</div></div>
+          <div class="card-content"><canvas id="courseChart" height="220"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i data-lucide="cpu" style="width:20px;height:20px;color:var(--accent)"></i>AI Model Performance</div><div class="card-desc">Real-time AI model metrics</div></div>
+          <div class="card-content space-y-4">
+            <div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium">Prediction Accuracy</span><div class="flex items-center gap-2"><span class="text-sm font-bold text-primary">94%</span><span class="badge badge-green" style="font-size:10px">On Target</span></div></div><div class="progress"><div class="progress-bar" style="width:94%"></div></div><p class="text-xs text-muted mt-1">Target: 95%</p></div>
+            <div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium">Response Time</span><div class="flex items-center gap-2"><span class="text-sm font-bold text-primary">88%</span><span class="badge badge-secondary" style="font-size:10px">Below Target</span></div></div><div class="progress"><div class="progress-bar" style="width:88%"></div></div><p class="text-xs text-muted mt-1">Target: 90%</p></div>
+            <div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium">User Satisfaction</span><div class="flex items-center gap-2"><span class="text-sm font-bold text-primary">92%</span><span class="badge badge-green" style="font-size:10px">On Target</span></div></div><div class="progress"><div class="progress-bar" style="width:92%"></div></div><p class="text-xs text-muted mt-1">Target: 90%</p></div>
+            <div><div class="flex justify-between items-center mb-1"><span class="text-sm font-medium">Model Uptime</span><div class="flex items-center gap-2"><span class="text-sm font-bold text-primary">99.8%</span><span class="badge badge-green" style="font-size:10px">On Target</span></div></div><div class="progress"><div class="progress-bar" style="width:99.8%"></div></div><p class="text-xs text-muted mt-1">Target: 99.5%</p></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i data-lucide="server" style="width:20px;height:20px;color:#16a34a"></i>System Resource Usage</div><div class="card-desc">CPU and memory utilization (24h)</div></div>
+          <div class="card-content">
+            <canvas id="sysChart" height="180"></canvas>
+            <div class="grid-2col mt-4" style="gap:12px">
+              <div class="p-3 rounded" style="background:#eff6ff"><p class="text-xs text-muted mb-1">Avg CPU Usage</p><p class="font-bold text-primary" style="font-size:20px">62%</p></div>
+              <div class="p-3 rounded" style="background:#faf5ff"><p class="text-xs text-muted mb-1">Avg Memory</p><p class="font-bold text-accent" style="font-size:20px">71%</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title"><i data-lucide="activity" style="width:20px;height:20px;color:var(--primary)"></i>Recent Platform Activity</div><div class="card-desc">Latest system events and updates</div></div>
+        <div class="card-content space-y-3">
+          <div class="flex items-center gap-4 p-3 rounded" style="background:#f8fafc"><div class="icon-circle" style="background:#dbeafe"><i data-lucide="book-open" style="width:20px;height:20px;color:#2563eb"></i></div><div class="flex-1"><p class="font-medium text-sm">New course created</p><p class="text-xs text-muted">Prof. Smith</p></div><p class="text-xs text-muted">2 hours ago</p></div>
+          <div class="flex items-center gap-4 p-3 rounded" style="background:#f8fafc"><div class="icon-circle" style="background:#dcfce7"><i data-lucide="user-plus" style="width:20px;height:20px;color:#16a34a"></i></div><div class="flex-1"><p class="font-medium text-sm">50 students enrolled</p><p class="text-xs text-muted">Web Development</p></div><p class="text-xs text-muted">4 hours ago</p></div>
+          <div class="flex items-center gap-4 p-3 rounded" style="background:#f8fafc"><div class="icon-circle" style="background:#f3e8ff"><i data-lucide="server" style="width:20px;height:20px;color:#7c3aed"></i></div><div class="flex-1"><p class="font-medium text-sm">System update deployed</p><p class="text-xs text-muted">v2.3.1</p></div><p class="text-xs text-muted">1 day ago</p></div>
+          <div class="flex items-center gap-4 p-3 rounded" style="background:#f8fafc"><div class="icon-circle" style="background:#ffedd5"><i data-lucide="users" style="width:20px;height:20px;color:#ea580c"></i></div><div class="flex-1"><p class="font-medium text-sm">New teacher onboarded</p><p class="text-xs text-muted">Dr. Johnson</p></div><p class="text-xs text-muted">2 days ago</p></div>
+          <div class="flex items-center gap-4 p-3 rounded" style="background:#f8fafc"><div class="icon-circle" style="background:#fce7f3"><i data-lucide="brain" style="width:20px;height:20px;color:#db2777"></i></div><div class="flex-1"><p class="font-medium text-sm">AI model retrained</p><p class="text-xs text-muted">94.5% accuracy</p></div><p class="text-xs text-muted">3 days ago</p></div>
+        </div>
+      </div>
+
+      <div class="grid-4col">
+        <button class="btn btn-primary btn-flex-col btn-full"><i data-lucide="user-plus" style="width:24px;height:24px"></i>Add New User</button>
+        <button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="book-open" style="width:24px;height:24px"></i>Create Course</button>
+        <button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="database" style="width:24px;height:24px"></i>Export Data</button>
+        <button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="settings" style="width:24px;height:24px"></i>System Settings</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+new Chart(document.getElementById('growthChart'), {
+  type: 'line',
+  data: { labels: ['Sep','Oct','Nov','Dec','Jan','Feb','Mar'], datasets: [{ label:'Students', data:[850,920,1050,1180,1350,1520,1680], borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,0.15)', fill:true, tension:0.4, borderWidth:2 }, { label:'Teachers', data:[45,48,52,55,60,65,68], borderColor:'#7C3AED', backgroundColor:'rgba(124,58,237,0.15)', fill:true, tension:0.4, borderWidth:2 }] },
+  options: { responsive:true, scales:{ y:{beginAtZero:false,grid:{color:'#e2e8f0'}}, x:{grid:{display:false}} } }
+});
+new Chart(document.getElementById('courseChart'), {
+  type: 'bar',
+  data: { labels: ['Python','Data Sci','Web Dev','AI/ML','Math'], datasets: [{ label:'Enrollment', data:[450,380,520,290,410], backgroundColor:'#7C3AED', borderRadius:6 }] },
+  options: { responsive:true, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,grid:{color:'#e2e8f0'}}, x:{grid:{display:false}} } }
+});
+new Chart(document.getElementById('sysChart'), {
+  type: 'line',
+  data: { labels: ['00:00','04:00','08:00','12:00','16:00','20:00'], datasets: [{ label:'CPU', data:[45,38,72,85,78,55], borderColor:'#2563EB', borderWidth:2, tension:0.4, pointRadius:0 }, { label:'Memory', data:[62,58,75,82,79,68], borderColor:'#7C3AED', borderWidth:2, tension:0.4, pointRadius:0 }] },
+  options: { responsive:true, scales:{ y:{beginAtZero:true,max:100,grid:{color:'#e2e8f0'}}, x:{grid:{display:false}} } }
+});
+</script>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

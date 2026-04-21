@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - Learning DNA</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a></div>
+    <nav class="sidebar-nav">
+      <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/mycourses"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
+      <a href="/learning-path"><button class="nav-btn"><i data-lucide="target" style="width:16px;height:16px"></i>AI Learning Path</button></a>
+      <a href="/learning-dna"><button class="nav-btn active"><i data-lucide="brain" style="width:16px;height:16px"></i>Learning DNA</button></a>
+      <a href="/ai-tutor"><button class="nav-btn"><i data-lucide="message-square" style="width:16px;height:16px"></i>AI Tutor</button></a>
+      <a href="/gamification"><button class="nav-btn"><i data-lucide="trophy" style="width:16px;height:16px"></i>Leaderboard</button></a>
+      <a href="/settings"><button class="nav-btn"><i data-lucide="settings" style="width:16px;height:16px"></i>Settings</button></a>
+    </nav>
+    <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div>
+        <h2 class="font-bold" style="font-size:20px">Learning DNA Profile</h2>
+        <p class="text-sm text-muted">Your personalized learning analytics</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon"><i data-lucide="bell" style="width:20px;height:20px"></i></button>
+        <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Avatar"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Profile Header -->
+      <div class="card" style="background:linear-gradient(135deg,rgba(37,99,235,0.08),rgba(124,58,237,0.08),rgba(147,51,234,0.08))">
+        <div class="card-content" style="padding:24px">
+          <div class="flex items-center gap-6">
+            <div class="avatar-xl" style="background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;border-radius:50%">
+              <i data-lucide="brain" style="width:48px;height:48px;color:#fff"></i>
+            </div>
+            <div class="flex-1">
+              <h2 class="font-bold mb-2" style="font-size:24px">Your Learning DNA</h2>
+              <p class="text-slate-700 mb-4">AI-analyzed profile showing your unique learning patterns, strengths, and areas for improvement.</p>
+              <div class="flex gap-2 flex-wrap">
+                <span class="badge badge-primary">Visual Learner - Dominant</span>
+                <span class="badge badge-accent">Practice-Based - Strong</span>
+                <span class="badge badge-secondary">Auditory - Moderate</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="grid-2col">
+        <!-- Radar Chart -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="brain" style="width:20px;height:20px;color:var(--accent)"></i>Learning Style Breakdown</div>
+            <div class="card-desc">Your preferred learning methods</div>
+          </div>
+          <div class="card-content">
+            <canvas id="radarChart" height="250"></canvas>
+            <div class="space-y-2 mt-4">
+              <div class="flex items-center gap-2"><i data-lucide="eye" style="width:16px;height:16px;color:var(--primary)"></i><span class="text-sm font-medium">Visual Learning - 85%</span></div>
+              <div class="flex items-center gap-2"><i data-lucide="code" style="width:16px;height:16px;color:var(--accent)"></i><span class="text-sm font-medium">Practice-Based - 75%</span></div>
+              <div class="flex items-center gap-2"><i data-lucide="book-open" style="width:16px;height:16px;color:#16a34a"></i><span class="text-sm font-medium">Reading - 60%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="target" style="width:20px;height:20px;color:var(--primary)"></i>Performance Metrics</div>
+            <div class="card-desc">Your cognitive strengths</div>
+          </div>
+          <div class="card-content space-y-4">
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium">Concept Understanding</span><span class="text-sm font-bold text-primary">88%</span></div><div class="progress"><div class="progress-bar" style="width:88%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium">Problem Solving</span><span class="text-sm font-bold text-primary">82%</span></div><div class="progress"><div class="progress-bar" style="width:82%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium">Retention Rate</span><span class="text-sm font-bold text-primary">90%</span></div><div class="progress"><div class="progress-bar" style="width:90%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium">Application</span><span class="text-sm font-bold text-primary">85%</span></div><div class="progress"><div class="progress-bar" style="width:85%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium">Speed</span><span class="text-sm font-bold text-primary">75%</span></div><div class="progress"><div class="progress-bar" style="width:75%"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress over time -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i data-lucide="trending-up" style="width:20px;height:20px;color:#16a34a"></i>Learning Progress Over Time</div>
+          <div class="card-desc">Your improvement trajectory (Last 7 months)</div>
+        </div>
+        <div class="card-content">
+          <canvas id="lineChart" height="100"></canvas>
+        </div>
+      </div>
+
+      <!-- Strengths & Recommendations -->
+      <div class="grid-2col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="award" style="width:20px;height:20px;color:#ca8a04"></i>Your Strengths</div>
+            <div class="card-desc">Areas where you excel</div>
+          </div>
+          <div class="card-content space-y-3">
+            <div class="p-3 rounded" style="background:#f0fdf4;border:1px solid #86efac">
+              <h4 class="font-medium text-sm mb-1 flex items-center gap-2"><i data-lucide="zap" style="width:16px;height:16px;color:#16a34a"></i>Excellent Retention</h4>
+              <p class="text-xs text-slate-600">You retain 90% of learned material - well above average!</p>
+            </div>
+            <div class="p-3 rounded" style="background:#eff6ff;border:1px solid #93c5fd">
+              <h4 class="font-medium text-sm mb-1 flex items-center gap-2"><i data-lucide="eye" style="width:16px;height:16px;color:var(--primary)"></i>Visual Learning Mastery</h4>
+              <p class="text-xs text-slate-600">Diagrams and visual aids significantly boost your understanding.</p>
+            </div>
+            <div class="p-3 rounded" style="background:#faf5ff;border:1px solid #d8b4fe">
+              <h4 class="font-medium text-sm mb-1 flex items-center gap-2"><i data-lucide="target" style="width:16px;height:16px;color:var(--accent)"></i>Strong Problem Solver</h4>
+              <p class="text-xs text-slate-600">You excel at applying concepts to solve complex problems.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="brain" style="width:20px;height:20px;color:var(--accent)"></i>AI Recommendations</div>
+            <div class="card-desc">Personalized tips to optimize learning</div>
+          </div>
+          <div class="card-content space-y-3">
+            <div class="p-3 rounded" style="background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.2)">
+              <h4 class="font-medium text-sm mb-1">📊 Use More Visual Content</h4>
+              <p class="text-xs text-slate-600">Given your 85% visual learning preference, prioritize video lessons and infographics.</p>
+            </div>
+            <div class="p-3 rounded" style="background:rgba(37,99,235,0.05);border:1px solid rgba(37,99,235,0.2)">
+              <h4 class="font-medium text-sm mb-1">⚡ Increase Practice Sessions</h4>
+              <p class="text-xs text-slate-600">Your practice-based score is strong at 75%. More hands-on exercises will boost it further.</p>
+            </div>
+            <div class="p-3 rounded" style="background:#fff7ed;border:1px solid #fdba74">
+              <h4 class="font-medium text-sm mb-1">🎯 Optimal Study Time</h4>
+              <p class="text-xs text-slate-600">Your data shows peak performance between 9 AM - 12 PM. Schedule complex topics then.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats summary -->
+      <div class="grid-4col">
+        <div class="card"><div class="card-content text-center" style="padding:24px"><div class="font-bold text-primary mb-1" style="font-size:28px">85%</div><p class="text-sm text-muted">Visual Learning</p></div></div>
+        <div class="card"><div class="card-content text-center" style="padding:24px"><div class="font-bold text-green mb-1" style="font-size:28px">90%</div><p class="text-sm text-muted">Retention Rate</p></div></div>
+        <div class="card"><div class="card-content text-center" style="padding:24px"><div class="font-bold text-accent mb-1" style="font-size:28px">88%</div><p class="text-sm text-muted">Understanding</p></div></div>
+        <div class="card"><div class="card-content text-center" style="padding:24px"><div class="font-bold" style="font-size:28px;color:#f59e0b">+25%</div><p class="text-sm text-muted">Improvement</p></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+
+// Radar chart
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Visual','Practice','Reading','Auditory','Social'],
+    datasets: [{ label:'Score', data:[85,75,60,70,55], backgroundColor:'rgba(124,58,237,0.3)', borderColor:'#7C3AED', borderWidth:2, pointBackgroundColor:'#7C3AED' }]
+  },
+  options: { responsive: true, scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
+});
+
+// Line chart
+new Chart(document.getElementById('lineChart'), {
+  type: 'line',
+  data: {
+    labels: ['Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
+    datasets: [{ label:'Score', data:[65,72,78,82,86,88,90], borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,0.1)', borderWidth:3, fill:true, tension:0.4, pointBackgroundColor:'#2563EB', pointRadius:5 }]
+  },
+  options: { responsive: true, scales: { y: { beginAtZero: false, min:50, max:100, grid:{ color:'#e2e8f0' } }, x: { grid: { display:false } } }, plugins: { legend: { display: false } } }
+});
+</script>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - My Courses</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.course-card {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: all 0.25s;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(37,99,235,0.12);
+  border-color: var(--primary);
+}
+.course-banner {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.course-banner-icon {
+  font-size: 48px;
+  z-index: 1;
+}
+.course-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  background: repeating-linear-gradient(45deg, #fff 0px, #fff 4px, transparent 4px, transparent 12px);
+}
+.filter-btn {
+  padding: 6px 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--foreground);
+  transition: all 0.2s;
+}
+.filter-btn:hover { background: var(--secondary); }
+.filter-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.tab-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.course-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 1100px) { .course-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px)  { .course-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/mycourses"><button class="nav-btn active"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
+      <a href="/learning-path"><button class="nav-btn"><i data-lucide="target" style="width:16px;height:16px"></i>AI Learning Path</button></a>
+      <a href="/learning-dna"><button class="nav-btn"><i data-lucide="brain" style="width:16px;height:16px"></i>Learning DNA</button></a>
+      <a href="/ai-tutor"><button class="nav-btn"><i data-lucide="message-square" style="width:16px;height:16px"></i>AI Tutor</button></a>
+      <a href="/gamification"><button class="nav-btn"><i data-lucide="trophy" style="width:16px;height:16px"></i>Leaderboard</button></a>
+      <a href="/settings"><button class="nav-btn"><i data-lucide="settings" style="width:16px;height:16px"></i>Settings</button></a>
+    </nav>
+    <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div>
+        <h2 class="font-bold" style="font-size:20px;color:#fff">My Courses</h2>
+        <p class="text-sm" style="color:rgba(255,255,255,0.75)">Track your learning journey across all subjects</p>
+      </div>
+      <div class="header-actions">
+        <div class="input-wrap" style="max-width:260px">
+          <i data-lucide="search" class="input-icon" style="width:15px;height:15px"></i>
+          <input class="input" id="searchInput" placeholder="Search courses..." oninput="filterCourses()" style="padding-left:34px">
+        </div>
+        <button class="btn-icon relative"><i data-lucide="bell" style="width:20px;height:20px"></i><span class="notif-dot"></span></button>
+        <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Avatar"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Summary Stats -->
+      <div class="metric-cards">
+        <div class="card" style="border-top:4px solid var(--primary)">
+          <div class="card-content" style="padding:20px">
+            <div class="flex items-center justify-between">
+              <div><p class="text-sm text-muted mb-1">Enrolled</p><p class="font-bold" style="font-size:32px;color:var(--primary)">6</p><p class="text-xs text-muted mt-1">Total courses</p></div>
+              <div class="icon-circle" style="background:#eff6ff;width:52px;height:52px"><i data-lucide="book-open" style="width:24px;height:24px;color:var(--primary)"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="border-top:4px solid #16a34a">
+          <div class="card-content" style="padding:20px">
+            <div class="flex items-center justify-between">
+              <div><p class="text-sm text-muted mb-1">Completed</p><p class="font-bold" style="font-size:32px;color:#16a34a">1</p><p class="text-xs text-muted mt-1">This semester</p></div>
+              <div class="icon-circle" style="background:#f0fdf4;width:52px;height:52px"><i data-lucide="check-circle-2" style="width:24px;height:24px;color:#16a34a"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="border-top:4px solid var(--accent)">
+          <div class="card-content" style="padding:20px">
+            <div class="flex items-center justify-between">
+              <div><p class="text-sm text-muted mb-1">In Progress</p><p class="font-bold" style="font-size:32px;color:var(--accent)">4</p><p class="text-xs text-muted mt-1">Active now</p></div>
+              <div class="icon-circle" style="background:#faf5ff;width:52px;height:52px"><i data-lucide="play-circle" style="width:24px;height:24px;color:var(--accent)"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="border-top:4px solid #f59e0b">
+          <div class="card-content" style="padding:20px">
+            <div class="flex items-center justify-between">
+              <div><p class="text-sm text-muted mb-1">Avg. Progress</p><p class="font-bold" style="font-size:32px;color:#f59e0b">61%</p><p class="text-xs text-green mt-1">↑ 8% this month</p></div>
+              <div class="icon-circle" style="background:#fffbeb;width:52px;height:52px"><i data-lucide="trending-up" style="width:24px;height:24px;color:#f59e0b"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Progress Chart + Filter -->
+      <div class="grid-2col" style="grid-template-columns:1fr 2fr">
+
+        <!-- Overall radar -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="activity" style="width:20px;height:20px;color:var(--accent)"></i>Subject Mastery</div>
+            <div class="card-desc">Your skill level per subject</div>
+          </div>
+          <div class="card-content"><canvas id="masteryChart" height="220"></canvas></div>
+        </div>
+
+        <!-- Weekly hours bar -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="bar-chart-3" style="width:20px;height:20px;color:var(--primary)"></i>Study Hours This Week</div>
+            <div class="card-desc">Time spent per course (hours)</div>
+          </div>
+          <div class="card-content"><canvas id="hoursChart" height="220"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="card">
+        <div class="card-content" style="padding:16px 24px">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="tab-pills" id="filterPills">
+              <button class="filter-btn active" onclick="setFilter('all', this)">All Courses</button>
+              <button class="filter-btn" onclick="setFilter('in-progress', this)">In Progress</button>
+              <button class="filter-btn" onclick="setFilter('completed', this)">Completed</button>
+              <button class="filter-btn" onclick="setFilter('not-started', this)">Not Started</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-muted">Sort by:</span>
+              <select id="sortSelect" onchange="sortCourses()" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:#fff;cursor:pointer;outline:none">
+                <option value="progress">Progress</option>
+                <option value="name">Name</option>
+                <option value="score">Score</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Course Cards Grid -->
+      <div class="course-grid" id="courseGrid">
+
+        <!-- Python Programming -->
+        <div class="course-card" data-status="in-progress" data-name="Introduction to Python" data-progress="85" data-score="87">
+          <div class="course-banner" style="background:linear-gradient(135deg,#1d4ed8,#2563eb)">
+            <div class="course-banner-icon">🐍</div>
+          </div>
+          <div style="padding:16px">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <h3 class="font-semibold" style="font-size:15px;color:#1e1b4b">Introduction to Python</h3>
+                <p class="text-xs text-muted mt-1">Prof. Smith &nbsp;•&nbsp; CS101</p>
+              </div>
+              <span class="badge badge-primary">In Progress</span>
+            </div>
+            <div class="flex gap-3 mb-3 text-xs text-muted">
+              <span><i data-lucide="clock" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 24h total</span>
+              <span><i data-lucide="book-open" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 8 modules</span>
+              <span><i data-lucide="users" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 142 students</span>
+            </div>
+            <div class="mb-3">
+              <div class="flex justify-between mb-1"><span class="text-xs text-muted">Progress</span><span class="text-xs font-bold text-primary">85%</span></div>
+              <div class="progress" style="height:6px"><div class="progress-bar" style="width:85%"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="badge badge-secondary">Score: 87%</span>
+                <span class="badge" style="background:#eff6ff;color:var(--primary)">🔥 35d streak</span>
+              </div>
+              <a href="/learning-path"><button class="btn btn-primary btn-sm">Continue</button></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Structures -->
+        <div class="course-card" data-status="in-progress" data-name="Data Structures" data-progress="65" data-score="72">
+          <div class="course-banner" style="background:linear-gradient(135deg,#6d28d9,#7c3aed)">
+            <div class="course-banner-icon">🧩</div>
+          </div>
+          <div style="padding:16px">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <h3 class="font-semibold" style="font-size:15px;color:#1e1b4b">Data Structures</h3>
+                <p class="text-xs text-muted mt-1">Prof. Johnson &nbsp;•&nbsp; CS201</p>
+              </div>
+              <span class="badge badge-accent">In Progress</span>
+            </div>
+            <div class="flex gap-3 mb-3 text-xs text-muted">
+              <span><i data-lucide="clock" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 30h total</span>
+              <span><i data-lucide="book-open" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 10 modules</span>
+              <span><i data-lucide="users" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 98 students</span>
+            </div>
+            <div class="mb-3">
+              <div class="flex justify-between mb-1"><span class="text-xs text-muted">Progress</span><span class="text-xs font-bold text-accent">65%</span></div>
+              <div class="progress" style="height:6px"><div class="progress-bar" style="width:65%;background:var(--accent)"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="badge badge-secondary">Score: 72%</span>
+                <span class="badge" style="background:#faf5ff;color:var(--accent)">Next: Trees</span>
+              </div>
+              <a href="/learning-path"><button class="btn btn-sm" style="background:var(--accent);color:#fff">Continue</button></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Web Development -->
+        <div class="course-card" data-status="in-progress" data-name="Web Development" data-progress="45" data-score="68">
+          <div class="course-banner" style="background:linear-gradient(135deg,#0f766e,#0d9488)">
+            <div class="course-banner-icon">🌐</div>
+          </div>
+          <div style="padding:16px">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <h3 class="font-semibold" style="font-size:15px;color:#1e1b4b">Web Development</h3>
+                <p class="text-xs text-muted mt-1">Prof. Brown &nbsp;•&nbsp; WD301</p>
+              </div>
+              <span class="badge" style="background:#ccfbf1;color:#0f766e">In Progress</span>
+            </div>
+            <div class="flex gap-3 mb-3 text-xs text-muted">
+              <span><i data-lucide="clock" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 36h total</span>
+              <span><i data-lucide="book-open" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 12 modules</span>
+              <span><i data-lucide="users" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 120 students</span>
+            </div>
+            <div class="mb-3">
+              <div class="flex justify-between mb-1"><span class="text-xs text-muted">Progress</span><span class="text-xs font-bold" style="color:#0f766e">45%</span></div>
+              <div class="progress" style="height:6px"><div class="progress-bar" style="width:45%;background:#0d9488"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="badge badge-secondary">Score: 68%</span>
+                <span class="badge" style="background:#f0fdfa;color:#0f766e">Next: CSS</span>
+              </div>
+              <a href="/learning-path"><button class="btn btn-sm" style="background:#0d9488;color:#fff">Continue</button></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Machine Learning -->
+        <div class="course-card" data-status="in-progress" data-name="Machine Learning Basics" data-progress="30" data-score="74">
+          <div class="course-banner" style="background:linear-gradient(135deg,#b45309,#d97706)">
+            <div class="course-banner-icon">🤖</div>
+          </div>
+          <div style="padding:16px">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <h3 class="font-semibold" style="font-size:15px;color:#1e1b4b">Machine Learning Basics</h3>
+                <p class="text-xs text-muted mt-1">Prof. Zhang &nbsp;•&nbsp; ML401</p>
+              </div>
+              <span class="badge" style="background:#fef3c7;color:#b45309">In Progress</span>
+            </div>
+            <div class="flex gap-3 mb-3 text-xs text-muted">
+              <span><i data-lucide="clock" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 40h total</span>
+              <span><i data-lucide="book-open" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 14 modules</span>
+              <span><i data-lucide="users" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 75 students</span>
+            </div>
+            <div class="mb-3">
+              <div class="flex justify-between mb-1"><span class="text-xs text-muted">Progress</span><span class="text-xs font-bold" style="color:#d97706">30%</span></div>
+              <div class="progress" style="height:6px"><div class="progress-bar" style="width:30%;background:#d97706"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="badge badge-secondary">Score: 74%</span>
+                <span class="badge" style="background:#fffbeb;color:#b45309">New!</span>
+              </div>
+              <a href="/learning-path"><button class="btn btn-sm" style="background:#d97706;color:#fff">Continue</button></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Algorithms (Completed) -->
+        <div class="course-card" data-status="completed" data-name="Algorithms & Complexity" data-progress="100" data-score="92">
+          <div class="course-banner" style="background:linear-gradient(135deg,#15803d,#16a34a)">
+            <div class="course-banner-icon">⚡</div>
+            <!-- Completed ribbon -->
+            <div style="position:absolute;top:12px;right:-20px;background:#fbbf24;color:#78350f;font-size:10px;font-weight:700;padding:4px 28px;transform:rotate(35deg);letter-spacing:0.5px">DONE</div>
+          </div>
+          <div style="padding:16px">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <h3 class="font-semibold" style="font-size:15px;color:#1e1b4b">Algorithms & Complexity</h3>
+                <p class="text-xs text-muted mt-1">Prof. Smith &nbsp;•&nbsp; CS301</p>
+              </div>
+              <span class="badge badge-green">Completed ✓</span>
+            </div>
+            <div class="flex gap-3 mb-3 text-xs text-muted">
+              <span><i data-lucide="clock" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 28h total</span>
+              <span><i data-lucide="book-open" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 9 modules</span>
+              <span><i data-lucide="users" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 88 students</span>
+            </div>
+            <div class="mb-3">
+              <div class="flex justify-between mb-1"><span class="text-xs text-muted">Progress</span><span class="text-xs font-bold text-green">100%</span></div>
+              <div class="progress" style="height:6px"><div class="progress-bar" style="width:100%;background:#16a34a"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="badge badge-secondary">Score: 92%</span>
+                <span class="badge badge-green">🏆 Certificate</span>
+              </div>
+              <button class="btn btn-sm" style="background:#f0fdf4;color:#16a34a;border:1px solid #86efac">Review</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI & Ethics (Not Started) -->
+        <div class="course-card" data-status="not-started" data-name="AI Ethics & Society" data-progress="0" data-score="0">
+          <div class="course-banner" style="background:linear-gradient(135deg,#4c1d95,#6d28d9)">
+            <div class="course-banner-icon">🧠</div>
+          </div>
+          <div style="padding:16px">
+            <div class="flex items-start justify-between mb-2">
+              <div>
+                <h3 class="font-semibold" style="font-size:15px;color:#1e1b4b">AI Ethics & Society</h3>
+                <p class="text-xs text-muted mt-1">Prof. Patel &nbsp;•&nbsp; AI501</p>
+              </div>
+              <span class="badge badge-secondary">Not Started</span>
+            </div>
+            <div class="flex gap-3 mb-3 text-xs text-muted">
+              <span><i data-lucide="clock" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 20h total</span>
+              <span><i data-lucide="book-open" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 7 modules</span>
+              <span><i data-lucide="users" style="width:12px;height:12px;display:inline;vertical-align:middle"></i> 60 students</span>
+            </div>
+            <div class="mb-3">
+              <div class="flex justify-between mb-1"><span class="text-xs text-muted">Progress</span><span class="text-xs font-bold text-muted">0%</span></div>
+              <div class="progress" style="height:6px"><div class="progress-bar" style="width:0%"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="badge badge-secondary">Starts Apr 1</span>
+                <span class="badge" style="background:#f5f3ff;color:var(--accent)">🆕 New</span>
+              </div>
+              <button class="btn btn-sm btn-outline" onclick="alert('Course starts April 1st!')">Preview</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- No results message -->
+      <div id="noResults" style="display:none" class="card">
+        <div class="card-content text-center" style="padding:48px">
+          <div style="font-size:48px;margin-bottom:12px">🔍</div>
+          <h3 class="font-semibold mb-2">No courses found</h3>
+          <p class="text-sm text-muted">Try a different filter or search term.</p>
+        </div>
+      </div>
+
+      <!-- Upcoming Deadlines -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i data-lucide="calendar-clock" style="width:20px;height:20px;color:var(--destructive)"></i>Upcoming Deadlines</div>
+          <div class="card-desc">Don't miss these important dates</div>
+        </div>
+        <div class="card-content">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+            <div class="p-4 rounded" style="background:linear-gradient(135deg,#fef2f2,#fff);border:1px solid #fecaca">
+              <div class="flex items-center gap-2 mb-2"><i data-lucide="alert-circle" style="width:16px;height:16px;color:#ef4444"></i><span class="text-xs font-bold text-red">Due in 2 days</span></div>
+              <h4 class="font-semibold text-sm mb-1">Python Assignment #4</h4>
+              <p class="text-xs text-muted">Functions & Recursion</p>
+              <p class="text-xs font-medium mt-2" style="color:#ef4444">📅 Mar 15, 2026</p>
+            </div>
+            <div class="p-4 rounded" style="background:linear-gradient(135deg,#fefce8,#fff);border:1px solid #fde047">
+              <div class="flex items-center gap-2 mb-2"><i data-lucide="clock" style="width:16px;height:16px;color:#ca8a04"></i><span class="text-xs font-bold" style="color:#ca8a04">Due in 5 days</span></div>
+              <h4 class="font-semibold text-sm mb-1">Data Structures Quiz 3</h4>
+              <p class="text-xs text-muted">Trees & Graphs</p>
+              <p class="text-xs font-medium mt-2" style="color:#ca8a04">📅 Mar 18, 2026</p>
+            </div>
+            <div class="p-4 rounded" style="background:linear-gradient(135deg,#eff6ff,#fff);border:1px solid #bfdbfe">
+              <div class="flex items-center gap-2 mb-2"><i data-lucide="calendar" style="width:16px;height:16px;color:var(--primary)"></i><span class="text-xs font-bold text-primary">Due in 10 days</span></div>
+              <h4 class="font-semibold text-sm mb-1">Web Dev Project Phase 1</h4>
+              <p class="text-xs text-muted">HTML/CSS Portfolio</p>
+              <p class="text-xs font-medium mt-2" style="color:var(--primary)">📅 Mar 23, 2026</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="grid-4col">
+        <a href="/ai-tutor"><button class="btn btn-primary btn-flex-col btn-full"><i data-lucide="message-square" style="width:24px;height:24px"></i>Ask AI Tutor</button></a>
+        <a href="/learning-path"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="target" style="width:24px;height:24px"></i>Learning Path</button></a>
+        <a href="/learning-dna"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="brain" style="width:24px;height:24px"></i>Learning DNA</button></a>
+        <a href="/gamification"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="trophy" style="width:24px;height:24px"></i>Leaderboard</button></a>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+
+// ── Charts ──
+new Chart(document.getElementById('masteryChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Python','Data Struct.','Web Dev','ML','Algorithms','AI Ethics'],
+    datasets: [{
+      label: 'Mastery',
+      data: [85, 65, 45, 30, 92, 0],
+      backgroundColor: 'rgba(124,58,237,0.25)',
+      borderColor: '#7C3AED',
+      borderWidth: 2,
+      pointBackgroundColor: '#7C3AED',
+      pointRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 25, font: { size: 10 } }, pointLabels: { font: { size: 11 } } } },
+    plugins: { legend: { display: false } }
+  }
+});
+
+new Chart(document.getElementById('hoursChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Python', 'Data Struct.', 'Web Dev', 'Machine Learning', 'Algorithms', 'AI Ethics'],
+    datasets: [{
+      label: 'Hours this week',
+      data: [5, 3, 2, 4, 0, 0],
+      backgroundColor: ['#2563EB','#7C3AED','#0d9488','#d97706','#16a34a','#6d28d9'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#e2e8f0' }, title: { display: true, text: 'Hours', font: { size: 11 } } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ── Filter & Search ──
+let activeFilter = 'all';
+
+function setFilter(filter, btn) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function filterCourses() { applyFilters(); }
+
+function applyFilters() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const cards = document.querySelectorAll('.course-card');
+  let visible = 0;
+  cards.forEach(card => {
+    const status = card.dataset.status;
+    const name = card.dataset.name.toLowerCase();
+    const matchFilter = activeFilter === 'all' || status === activeFilter;
+    const matchSearch = name.includes(query);
+    if (matchFilter && matchSearch) {
+      card.style.display = '';
+      visible++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+  document.getElementById('noResults').style.display = visible === 0 ? '' : 'none';
+}
+
+function sortCourses() {
+  const sortBy = document.getElementById('sortSelect').value;
+  const grid = document.getElementById('courseGrid');
+  const cards = Array.from(grid.querySelectorAll('.course-card'));
+  cards.sort((a, b) => {
+    if (sortBy === 'progress') return parseInt(b.dataset.progress) - parseInt(a.dataset.progress);
+    if (sortBy === 'name') return a.dataset.name.localeCompare(b.dataset.name);
+    if (sortBy === 'score') return parseInt(b.dataset.score) - parseInt(a.dataset.score);
+  });
+  cards.forEach(c => grid.appendChild(c));
+}
+</script>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

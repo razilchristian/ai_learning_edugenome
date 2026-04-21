@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - AI Tutor</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.chat-wrap { display:flex; flex-direction:column; height:calc(100vh - 73px); }
+.chat-scroll { flex:1; overflow-y:auto; padding:24px; background:#f8fafc; }
+.chat-input-area { border-top:1px solid var(--border); background:#fff; padding:16px 24px; }
+
+.typing-bubble { display:flex; align-items:center; gap:6px; padding:12px 16px; }
+.typing-dot { width:8px; height:8px; border-radius:50%; background:#7c3aed; opacity:0.4; animation:typingBounce 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay:0.2s; }
+.typing-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes typingBounce { 0%,60%,100%{transform:translateY(0);opacity:0.4} 30%{transform:translateY(-6px);opacity:1} }
+
+.streaming::after { content:'▋'; animation:blink 0.7s infinite; color:#7c3aed; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.chat-bubble pre { background:#1e1b4b; color:#e2e8f0; border-radius:8px; padding:12px; margin:8px 0; overflow-x:auto; font-size:12px; line-height:1.6; }
+.chat-bubble code { font-family:'Courier New',monospace; }
+.chat-bubble p { margin-bottom:8px; }
+.chat-bubble p:last-child { margin-bottom:0; }
+.chat-bubble ul, .chat-bubble ol { padding-left:20px; margin:6px 0; }
+.chat-bubble li { margin-bottom:4px; }
+.btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+.context-chip { background:rgba(124,58,237,0.1); border:1px solid rgba(124,58,237,0.3); color:#7c3aed; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:500; }
+.clear-btn { color:#94a3b8; font-size:12px; cursor:pointer; transition:color 0.2s; background:none; border:none; display:flex; align-items:center; gap:4px; }
+.clear-btn:hover { color:#ef4444; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/mycourses"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
+      <a href="/learning-path"><button class="nav-btn"><i data-lucide="target" style="width:16px;height:16px"></i>AI Learning Path</button></a>
+      <a href="/learning-dna"><button class="nav-btn"><i data-lucide="brain" style="width:16px;height:16px"></i>Learning DNA</button></a>
+      <a href="/ai-tutor"><button class="nav-btn active"><i data-lucide="message-square" style="width:16px;height:16px"></i>AI Tutor</button></a>
+      <a href="/gamification"><button class="nav-btn"><i data-lucide="trophy" style="width:16px;height:16px"></i>Leaderboard</button></a>
+      <a href="/settings"><button class="nav-btn"><i data-lucide="settings" style="width:16px;height:16px"></i>Settings</button></a>
+    </nav>
+    <div class="p-4" style="margin-top:8px">
+      <div class="card" style="background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.3);margin-bottom:12px">
+        <div class="card-content" style="padding:16px">
+          <div class="flex items-center gap-2 mb-2">
+            <i data-lucide="sparkles" style="width:16px;height:16px;color:#c4b5fd"></i>
+            <span class="text-sm font-semibold" style="color:#c4b5fd">Real AI Tutor</span>
+          </div>
+          <p class="text-xs" style="color:#ddd6fe">Powered by Gemini. Remembers your full conversation!</p>
+        </div>
+      </div>
+      <div class="card" style="background:rgba(37,99,235,0.1);border-color:rgba(37,99,235,0.3)">
+        <div class="card-content" style="padding:16px">
+          <p class="text-xs font-semibold mb-2" style="color:#93c5fd">Your Courses</p>
+          <div class="flex flex-wrap gap-1">
+            <span class="context-chip">Python 🐍</span>
+            <span class="context-chip">Data Structures</span>
+            <span class="context-chip">Web Dev 🌐</span>
+          </div>
+          <p class="text-xs mt-2" style="color:#94a3b8">AI knows your progress</p>
+        </div>
+      </div>
+    </div>
+    <div class="p-4 mt-auto">
+      <p class="text-xs text-center" style="color:#6b7280" id="msgCount">0 messages in session</p>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div>
+        <h2 class="font-bold" style="font-size:20px;color:#fff">AI Tutor Chat</h2>
+        <div class="flex items-center gap-2 mt-1">
+          <div class="online-dot" id="statusDot"></div>
+          <p class="text-sm" style="color:rgba(255,255,255,0.75)" id="statusText">Online — Powered by Gemini</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="clear-btn" onclick="clearChat()">
+          <i data-lucide="trash-2" style="width:14px;height:14px"></i> Clear chat
+        </button>
+        <button class="btn-icon"><i data-lucide="bell" style="width:20px;height:20px"></i></button>
+        <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Avatar"></div>
+      </div>
+    </header>
+
+    <div class="chat-wrap">
+      <div class="chat-scroll" id="chatMessages">
+        <div style="max-width:800px;margin:0 auto" id="msgContainer">
+          <div class="chat-msg mb-4">
+            <div class="ai-avatar"><i data-lucide="brain" style="width:24px;height:24px;color:#fff"></i></div>
+            <div>
+              <div class="chat-bubble ai">
+                <p class="text-sm">👋 Hello! I'm your AI tutor, powered by <strong>Gemini</strong>. I know you're enrolled in <strong>Python, Data Structures, and Web Dev</strong>.</p>
+                <p class="text-sm" style="margin-top:8px">I can help you:</p>
+                <ul class="text-sm" style="margin-top:4px">
+                  <li>📚 Explain any concept in depth</li>
+                  <li>💻 Write and debug code with you</li>
+                  <li>🧪 Generate quizzes and practice problems</li>
+                  <li>🗺️ Build personalized study plans</li>
+                </ul>
+                <p class="text-sm" style="margin-top:8px">What would you like to learn today?</p>
+                <p class="chat-time ai" id="welcomeTime"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <div style="max-width:800px;margin:0 auto">
+          <p class="text-sm text-muted mb-2">Try asking:</p>
+          <div class="flex flex-wrap gap-2 mb-3" id="suggestions">
+            <button class="btn btn-outline btn-sm" onclick="useSuggestion(this)">Explain recursion in Python</button>
+            <button class="btn btn-outline btn-sm" onclick="useSuggestion(this)">Generate a quiz on data structures</button>
+            <button class="btn btn-outline btn-sm" onclick="useSuggestion(this)">Create a study plan for this week</button>
+            <button class="btn btn-outline btn-sm" onclick="useSuggestion(this)">Help me understand Big O notation</button>
+          </div>
+          <div class="flex gap-2">
+            <input class="input" id="chatInput" placeholder="Ask me anything about your courses..." onkeydown="handleKey(event)" autocomplete="off">
+            <button class="btn btn-primary" id="sendBtn" onclick="sendMsg()" style="background:linear-gradient(135deg,var(--primary),var(--accent));min-width:48px">
+              <i data-lucide="send" style="width:16px;height:16px"></i>
+            </button>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <button class="btn btn-ghost btn-sm" onclick="quickPrompt('Explain step by step: ')"><i data-lucide="book" style="width:14px;height:14px"></i>Explain</button>
+            <button class="btn btn-ghost btn-sm" onclick="quickPrompt('Give me 5 practice questions on: ')"><i data-lucide="help-circle" style="width:14px;height:14px"></i>Quiz Me</button>
+            <button class="btn btn-ghost btn-sm" onclick="quickPrompt('Summarize key points of: ')"><i data-lucide="file-text" style="width:14px;height:14px"></i>Summarize</button>
+            <button class="btn btn-ghost btn-sm" onclick="quickPrompt('Show me a code example of: ')"><i data-lucide="code" style="width:14px;height:14px"></i>Code</button>
+            <button class="btn btn-ghost btn-sm" onclick="quickPrompt('Create a 7-day study plan for: ')"><i data-lucide="calendar" style="width:14px;height:14px"></i>Study Plan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+document.getElementById('welcomeTime').textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+const chatHistory = [];
+let isStreaming = false;
+
+const SYSTEM_PROMPT = `You are EduGenome's AI Tutor — a friendly, expert educational assistant. You're talking to a student enrolled in:
+- Python Programming (85% progress)
+- Data Structures & Algorithms (65% progress)
+- Web Development (45% progress)
+- Machine Learning (30% progress, just started)
+
+Your style:
+- Warm, encouraging, and patient
+- Use emojis occasionally to keep things engaging
+- Break complex topics into digestible steps
+- Always include practical examples or code when relevant
+- Format code in triple backticks with language name
+- Celebrate progress and curiosity
+
+For quizzes: Include 4 MCQ questions with answers marked and explanations.
+For code: Show code first, then explain line by line. Mention common mistakes.
+Keep responses educational and tailored to the student's course context.`;
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function useSuggestion(el) {
+  document.getElementById('chatInput').value = el.textContent.trim();
+  document.getElementById('chatInput').focus();
+}
+
+function quickPrompt(prefix) {
+  const inp = document.getElementById('chatInput');
+  inp.value = prefix;
+  inp.focus();
+  inp.setSelectionRange(inp.value.length, inp.value.length);
+}
+
+function clearChat() {
+  if (!confirm('Clear the entire conversation?')) return;
+  chatHistory.length = 0;
+  const c = document.getElementById('msgContainer');
+  while (c.children.length > 1) c.removeChild(c.lastChild);
+  document.getElementById('suggestions').style.display = '';
+  updateMsgCount();
+}
+
+function updateMsgCount() {
+  const n = chatHistory.length;
+  document.getElementById('msgCount').textContent = n === 0 ? '0 messages in session' : `${Math.ceil(n/2)} message${n>2?'s':''} in session`;
+}
+
+function setStatus(text, color) {
+  document.getElementById('statusText').textContent = text;
+  if (color) document.getElementById('statusDot').style.background = color;
+  else document.getElementById('statusDot').style.background = '';
+}
+
+function formatText(text) {
+  return text
+    .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+    .replace(/`([^`]+)`/g, '<code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12px">$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^### (.+)$/gm, '<p><strong style="font-size:14px;color:#1e1b4b">$1</strong></p>')
+    .replace(/^## (.+)$/gm, '<p><strong style="font-size:15px;color:#1e1b4b">$1</strong></p>')
+    .replace(/^# (.+)$/gm, '<p><strong style="font-size:16px;color:#1e1b4b">$1</strong></p>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+    .replace(/\n/g, '<br>');
+}
+
+function addUserMsg(text) {
+  const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const safe = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  document.getElementById('msgContainer').innerHTML += `<div class="chat-msg user mb-4">
+    <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt=""></div>
+    <div><div class="chat-bubble user"><p class="text-sm">${safe}</p><p class="chat-time user">${now}</p></div></div>
+  </div>`;
+  scrollDown();
+}
+
+function addTypingIndicator() {
+  const c = document.getElementById('msgContainer');
+  const div = document.createElement('div');
+  div.id = 'typingIndicator';
+  div.className = 'chat-msg mb-4';
+  div.innerHTML = `<div class="ai-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44l-3.01-3.82A2.5 2.5 0 0 1 4.5 12H2"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44l3.01-3.82A2.5 2.5 0 0 0 19.5 12H22"/></svg></div>
+  <div><div class="chat-bubble ai"><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>`;
+  c.appendChild(div);
+  scrollDown();
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function addAIMsg() {
+  const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const msgId = 'ai-msg-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'chat-msg mb-4';
+  div.innerHTML = `<div class="ai-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44l-3.01-3.82A2.5 2.5 0 0 1 4.5 12H2"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44l3.01-3.82A2.5 2.5 0 0 0 19.5 12H22"/></svg></div>
+  <div><div class="chat-bubble ai"><div id="${msgId}" class="text-sm streaming"></div><p class="chat-time ai">${now}</p></div></div>`;
+  document.getElementById('msgContainer').appendChild(div);
+  scrollDown();
+  return msgId;
+}
+
+function scrollDown() {
+  const el = document.getElementById('chatMessages');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function sendMsg() {
+  if (isStreaming) return;
+  const inp = document.getElementById('chatInput');
+  const q = inp.value.trim();
+  if (!q) return;
+
+  inp.value = '';
+  isStreaming = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('suggestions').style.display = 'none';
+
+  chatHistory.push({ role: 'user', content: q });
+  addUserMsg(q);
+  setStatus('AI is thinking...', '#f59e0b');
+  addTypingIndicator();
+
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: chatHistory
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error?.message || 'API error');
+
+    const aiText = data.content?.[0]?.text || 'Sorry, I could not generate a response.';
+
+    removeTypingIndicator();
+    const msgId = addAIMsg();
+    const el = document.getElementById(msgId);
+
+    // Typewriter effect
+    let i = 0;
+    function typeNext() {
+      if (i < aiText.length) {
+        i = Math.min(i + 10, aiText.length);
+        el.innerHTML = formatText(aiText.slice(0, i));
+        scrollDown();
+        setTimeout(typeNext, 10);
+      } else {
+        el.classList.remove('streaming');
+        chatHistory.push({ role: 'assistant', content: aiText });
+        updateMsgCount();
+        isStreaming = false;
+        document.getElementById('sendBtn').disabled = false;
+        setStatus('Online — Powered by Gemini AI', '');
+        inp.focus();
+      }
+    }
+    typeNext();
+
+  } catch (err) {
+    removeTypingIndicator();
+    const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('msgContainer').innerHTML += `<div class="chat-msg mb-4">
+      <div class="ai-avatar" style="background:#ef4444"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+      <div><div class="chat-bubble ai" style="border-color:#fca5a5;background:#fef2f2">
+        <p class="text-sm" style="color:#dc2626">⚠️ Could not reach AI: ${err.message}. Please check your connection.</p>
+        <p class="chat-time ai">${now}</p>
+      </div></div>
+    </div>`;
+    chatHistory.pop();
+    isStreaming = false;
+    document.getElementById('sendBtn').disabled = false;
+    setStatus('Connection error', '#ef4444');
+    scrollDown();
+  }
+}
+</script>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

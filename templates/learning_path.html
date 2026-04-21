@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - Learning Path</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.path-svg { width:100%; height:500px; }
+.node-group { cursor:pointer; }
+.node-circle { transition: all 0.2s; }
+.node-group:hover .node-circle { filter: brightness(1.15); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a></div>
+    <nav class="sidebar-nav">
+      <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/mycourses"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
+      <a href="/learning-path"><button class="nav-btn active"><i data-lucide="target" style="width:16px;height:16px"></i>AI Learning Path</button></a>
+      <a href="/learning-dna"><button class="nav-btn"><i data-lucide="brain" style="width:16px;height:16px"></i>Learning DNA</button></a>
+      <a href="/ai-tutor"><button class="nav-btn"><i data-lucide="message-square" style="width:16px;height:16px"></i>AI Tutor</button></a>
+      <a href="/gamification"><button class="nav-btn"><i data-lucide="trophy" style="width:16px;height:16px"></i>Leaderboard</button></a>
+      <a href="/settings"><button class="nav-btn"><i data-lucide="settings" style="width:16px;height:16px"></i>Settings</button></a>
+    </nav>
+    <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div>
+        <h2 class="font-bold" style="font-size:20px">AI Learning Path</h2>
+        <p class="text-sm text-muted">Introduction to Python - Personalized Journey</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon"><i data-lucide="bell" style="width:20px;height:20px"></i></button>
+        <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Avatar"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Progress summary -->
+      <div class="card" style="background:linear-gradient(135deg,rgba(37,99,235,0.05),rgba(124,58,237,0.05))">
+        <div class="card-content" style="padding:20px">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <i data-lucide="sparkles" style="width:24px;height:24px;color:var(--accent)"></i>
+              <div>
+                <h3 class="font-semibold">AI-Generated Path</h3>
+                <p class="text-sm text-muted">Adapted to your learning DNA</p>
+              </div>
+            </div>
+            <span class="badge badge-primary">3 of 8 Completed</span>
+          </div>
+          <div class="progress"><div class="progress-bar" style="width:37.5%"></div></div>
+          <p class="text-xs text-muted mt-2">37.5% complete • Est. 5 hours remaining</p>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <!-- Path Visualization -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="target" style="width:20px;height:20px;color:var(--primary)"></i>Learning Journey</div>
+            <div class="card-desc">Click on a node to see details</div>
+          </div>
+          <div class="card-content">
+            <svg class="path-svg" viewBox="0 0 400 520" id="pathSvg">
+              <!-- Connecting lines -->
+              <line x1="200" y1="50" x2="130" y2="140" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+              <line x1="200" y1="50" x2="280" y2="140" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+              <line x1="130" y1="140" x2="200" y2="230" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+              <line x1="280" y1="140" x2="200" y2="230" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+              <line x1="200" y1="230" x2="200" y2="320" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+              <line x1="200" y1="320" x2="130" y2="400" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+              <line x1="200" y1="320" x2="280" y2="400" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+              <line x1="130" y1="400" x2="200" y2="480" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+              <line x1="280" y1="400" x2="200" y2="480" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+
+              <!-- Node 1: Python Basics (completed) -->
+              <g class="node-group" onclick="showNode(1)">
+                <circle cx="200" cy="50" r="28" fill="#22c55e" class="node-circle" stroke="#16a34a" stroke-width="3"/>
+                <text x="200" y="53" text-anchor="middle" fill="white" font-size="18">✓</text>
+                <text x="200" y="90" text-anchor="middle" font-size="11" fill="#334155">Python Basics</text>
+                <text x="200" y="103" text-anchor="middle" font-size="10" fill="#64748b">🎬 30 min</text>
+              </g>
+
+              <!-- Node 2: Variables (completed) -->
+              <g class="node-group" onclick="showNode(2)">
+                <circle cx="130" cy="140" r="28" fill="#22c55e" class="node-circle" stroke="#16a34a" stroke-width="3"/>
+                <text x="130" y="143" text-anchor="middle" fill="white" font-size="18">✓</text>
+                <text x="130" y="178" text-anchor="middle" font-size="11" fill="#334155">Variables & Types</text>
+                <text x="130" y="191" text-anchor="middle" font-size="10" fill="#64748b">📝 15 min</text>
+              </g>
+
+              <!-- Node 4: Functions (in progress) -->
+              <g class="node-group" onclick="showNode(4)">
+                <circle cx="280" cy="140" r="28" fill="#2563EB" class="node-circle" stroke="#1d4ed8" stroke-width="3"/>
+                <text x="280" y="143" text-anchor="middle" fill="white" font-size="18">▶</text>
+                <text x="280" y="178" text-anchor="middle" font-size="11" fill="#334155">Functions</text>
+                <text x="280" y="191" text-anchor="middle" font-size="10" fill="#64748b">🎬 35 min</text>
+              </g>
+
+              <!-- Node 3: Control Flow (completed) -->
+              <g class="node-group" onclick="showNode(3)">
+                <circle cx="200" cy="230" r="28" fill="#22c55e" class="node-circle" stroke="#16a34a" stroke-width="3"/>
+                <text x="200" y="233" text-anchor="middle" fill="white" font-size="18">✓</text>
+                <text x="200" y="268" text-anchor="middle" font-size="11" fill="#334155">Control Flow</text>
+                <text x="200" y="281" text-anchor="middle" font-size="10" fill="#64748b">💻 45 min</text>
+              </g>
+
+              <!-- Node 5: Data Structures (locked) -->
+              <g class="node-group" onclick="showNode(5)">
+                <circle cx="200" cy="320" r="28" fill="#94a3b8" class="node-circle" stroke="#64748b" stroke-width="3"/>
+                <text x="200" y="323" text-anchor="middle" fill="white" font-size="18">🔒</text>
+                <text x="200" y="358" text-anchor="middle" font-size="11" fill="#334155">Data Structures</text>
+                <text x="200" y="371" text-anchor="middle" font-size="10" fill="#64748b">🎬 40 min</text>
+              </g>
+
+              <!-- Node 6: List Comprehension (locked) -->
+              <g class="node-group" onclick="showNode(6)">
+                <circle cx="130" cy="400" r="28" fill="#94a3b8" class="node-circle" stroke="#64748b" stroke-width="3"/>
+                <text x="130" y="403" text-anchor="middle" fill="white" font-size="18">🔒</text>
+                <text x="130" y="438" text-anchor="middle" font-size="11" fill="#334155">List Comprehension</text>
+                <text x="130" y="451" text-anchor="middle" font-size="10" fill="#64748b">💻 30 min</text>
+              </g>
+
+              <!-- Node 7: Dictionaries (locked) -->
+              <g class="node-group" onclick="showNode(7)">
+                <circle cx="280" cy="400" r="28" fill="#94a3b8" class="node-circle" stroke="#64748b" stroke-width="3"/>
+                <text x="280" y="403" text-anchor="middle" fill="white" font-size="18">🔒</text>
+                <text x="280" y="438" text-anchor="middle" font-size="11" fill="#334155">Dicts & Sets</text>
+                <text x="280" y="451" text-anchor="middle" font-size="10" fill="#64748b">📝 20 min</text>
+              </g>
+
+              <!-- Node 8: Final Project (locked) -->
+              <g class="node-group" onclick="showNode(8)">
+                <circle cx="200" cy="480" r="28" fill="#94a3b8" class="node-circle" stroke="#64748b" stroke-width="3"/>
+                <text x="200" y="483" text-anchor="middle" fill="white" font-size="18">🔒</text>
+                <text x="200" y="515" text-anchor="middle" font-size="11" fill="#334155">Final Project</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Node Detail -->
+        <div>
+          <div class="card mb-4" id="nodeDetail">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="info" style="width:20px;height:20px;color:var(--accent)"></i>Node Details</div>
+            </div>
+            <div class="card-content">
+              <p class="text-sm text-muted">Click on a learning node to see details and actions.</p>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="card">
+            <div class="card-header"><div class="card-title">Legend</div></div>
+            <div class="card-content space-y-3">
+              <div class="flex items-center gap-3"><div style="width:20px;height:20px;border-radius:50%;background:#22c55e"></div><span class="text-sm">Completed</span></div>
+              <div class="flex items-center gap-3"><div style="width:20px;height:20px;border-radius:50%;background:var(--primary)"></div><span class="text-sm">In Progress</span></div>
+              <div class="flex items-center gap-3"><div style="width:20px;height:20px;border-radius:50%;background:#94a3b8"></div><span class="text-sm">Locked</span></div>
+              <hr style="border-color:var(--border)">
+              <div class="flex gap-4 text-xs text-muted">
+                <span>🎬 Video</span><span>📝 Quiz</span><span>💻 Practice</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+const nodes = {
+  1: { title:'Python Basics', status:'completed', type:'Video', duration:'30 min', desc:'Introduction to Python programming language, syntax, and environment setup.' },
+  2: { title:'Variables & Types', status:'completed', type:'Quiz', duration:'15 min', desc:'Learn about Python data types, variables, and basic type operations.' },
+  3: { title:'Control Flow', status:'completed', type:'Practice', duration:'45 min', desc:'Master if/else statements, loops, and conditional logic in Python.' },
+  4: { title:'Functions', status:'in-progress', type:'Video', duration:'35 min', desc:'Define and call functions, understand parameters, return values, and scope.' },
+  5: { title:'Data Structures', status:'locked', type:'Video', duration:'40 min', desc:'Explore lists, tuples, dictionaries, and sets in Python.' },
+  6: { title:'List Comprehension', status:'locked', type:'Practice', duration:'30 min', desc:'Write concise and efficient list comprehensions and generators.' },
+  7: { title:'Dictionaries & Sets', status:'locked', type:'Quiz', duration:'20 min', desc:'Advanced operations with dictionaries and sets.' },
+  8: { title:'Final Project', status:'locked', type:'Practice', duration:'60 min', desc:'Build a complete Python application using everything you\'ve learned.' }
+};
+
+function showNode(id) {
+  const n = nodes[id];
+  const colors = { completed:'#22c55e', 'in-progress':'var(--primary)', locked:'#94a3b8' };
+  const labels = { completed:'Completed', 'in-progress':'In Progress', locked:'Locked' };
+  const btnHtml = n.status === 'in-progress' ? '<button class="btn btn-primary btn-full mt-3">Continue Learning ▶</button>' :
+    n.status === 'completed' ? '<button class="btn btn-outline btn-full mt-3">Review Again</button>' :
+    '<button class="btn btn-outline btn-full mt-3" disabled>🔒 Complete previous nodes first</button>';
+  document.getElementById('nodeDetail').innerHTML = `
+    <div class="card-header">
+      <div class="card-title"><i data-lucide="book-open" style="width:20px;height:20px;color:var(--accent)"></i>${n.title}</div>
+    </div>
+    <div class="card-content">
+      <div class="flex gap-2 mb-3">
+        <span class="badge" style="background:${colors[n.status]};color:#fff">${labels[n.status]}</span>
+        <span class="badge badge-secondary">${n.type}</span>
+        <span class="badge badge-secondary">⏱ ${n.duration}</span>
+      </div>
+      <p class="text-sm text-slate-600 mb-4">${n.desc}</p>
+      ${btnHtml}
+    </div>`;
+  lucide.createIcons();
+}
+</script>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

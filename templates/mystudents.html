@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - My Students</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.student-row { transition: background 0.15s; cursor: pointer; }
+.student-row:hover { background: #f5f3ff !important; }
+.student-row.selected { background: #ede9fe !important; border-left: 3px solid var(--accent); }
+.detail-panel { position: sticky; top: 24px; }
+.filter-btn { padding:6px 16px; border-radius:9999px; font-size:13px; font-weight:500; cursor:pointer; border:1px solid var(--border); background:#fff; color:var(--foreground); transition:all 0.2s; }
+.filter-btn:hover { background:var(--secondary); }
+.filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/teacher"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/mystudents"><button class="nav-btn active"><i data-lucide="users" style="width:16px;height:16px"></i>My Students</button></a>
+      <a href="/mycourseteacher"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
+      <a href="/failure-prediction"><button class="nav-btn"><i data-lucide="alert-triangle" style="width:16px;height:16px"></i>Failure Prediction</button></a>
+      <a href="/analytics"><button class="nav-btn"><i data-lucide="bar-chart-3" style="width:16px;height:16px"></i>Analytics</button></a>
+      <a href="/settings"><button class="nav-btn"><i data-lucide="settings" style="width:16px;height:16px"></i>Settings</button></a>
+    </nav>
+    <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div>
+        <h2 class="font-bold" style="font-size:20px;color:#fff">My Students</h2>
+        <p class="text-sm" style="color:rgba(255,255,255,0.75)">Monitor and support all your enrolled students</p>
+      </div>
+      <div class="header-actions">
+        <div class="input-wrap" style="max-width:280px">
+          <i data-lucide="search" class="input-icon" style="width:15px;height:15px"></i>
+          <input class="input" id="searchInput" placeholder="Search students..." oninput="applyFilters()">
+        </div>
+        <button class="btn" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);font-size:13px">
+          <i data-lucide="download" style="width:15px;height:15px"></i> Export
+        </button>
+        <button class="btn-icon relative"><i data-lucide="bell" style="width:20px;height:20px"></i><span class="notif-dot"></span></button>
+        <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=teacher" alt="Avatar"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- KPI Cards -->
+      <div class="metric-cards">
+        <div class="card" style="border-top:4px solid var(--primary)">
+          <div class="card-content" style="padding:20px">
+            <div class="flex items-center justify-between">
+              <div><p class="text-sm text-muted mb-1">Total Students</p><p class="font-bold" style="font-size:32px;color:var(--primary)">142</p><p class="text-xs text-green mt-1">↑ 8 this semester</p></div>
+              <div class="icon-circle" style="background:#eff6ff;width:52px;height:52px"><i data-lucide="users" style="width:24px;height:24px;color:var(--primary)"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="border-top:4px solid #16a34a">
+          <div class="card-content" style="padding:20px">
+            <div class="flex items-center justify-between">
+              <div><p class="text-sm text-muted mb-1">On Track</p><p class="font-bold" style="font-size:32px;color:#16a34a">127</p><p class="text-xs text-green mt-1">89% of students</p></div>
+              <div class="icon-circle" style="background:#f0fdf4;width:52px;height:52px"><i data-lucide="check-circle-2" style="width:24px;height:24px;color:#16a34a"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="border-top:4px solid #ca8a04">
+          <div class="card-content" style="padding:20px">
+            <div class="flex items-center justify-between">
+              <div><p class="text-sm text-muted mb-1">Needs Help</p><p class="font-bold" style="font-size:32px;color:#ca8a04">10</p><p class="text-xs text-muted mt-1">Medium risk</p></div>
+              <div class="icon-circle" style="background:#fefce8;width:52px;height:52px"><i data-lucide="clock" style="width:24px;height:24px;color:#ca8a04"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="border-top:4px solid #ef4444">
+          <div class="card-content" style="padding:20px">
+            <div class="flex items-center justify-between">
+              <div><p class="text-sm text-muted mb-1">At Risk</p><p class="font-bold text-red" style="font-size:32px">5</p><p class="text-xs text-red mt-1">⚠ Immediate action</p></div>
+              <div class="icon-circle" style="background:#fef2f2;width:52px;height:52px"><i data-lucide="alert-triangle" style="width:24px;height:24px;color:#ef4444"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="card">
+        <div class="card-content" style="padding:16px 24px">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="filter-btn active" onclick="setFilter('all',this)">All Students</button>
+              <button class="filter-btn" onclick="setFilter('on-track',this)">On Track</button>
+              <button class="filter-btn" onclick="setFilter('needs-help',this)">Needs Help</button>
+              <button class="filter-btn" onclick="setFilter('at-risk',this)">At Risk</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-muted">Course:</span>
+              <select id="courseFilter" onchange="applyFilters()" style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:#fff;cursor:pointer;outline:none">
+                <option value="all">All Courses</option>
+                <option value="Python">Python Programming</option>
+                <option value="Data">Data Structures</option>
+                <option value="Web">Web Development</option>
+                <option value="Machine">Machine Learning</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main: Table + Detail Panel -->
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start">
+
+        <!-- Students Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="users" style="width:20px;height:20px;color:var(--primary)"></i>Student List</div>
+            <div class="card-desc" id="countLabel">Showing 10 students — click a row to view details</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse" id="studentTable">
+              <thead>
+                <tr style="background:#f8fafc;border-bottom:1px solid var(--border)">
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:600">STUDENT</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:600">COURSE</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:600">PROGRESS</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:600">SCORE</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:600">ATTEND.</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:11px;color:#64748b;font-weight:600">STATUS</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Detail Panel -->
+        <div class="detail-panel" id="detailPanel">
+          <div class="card">
+            <div class="card-content text-center" style="padding:40px 24px">
+              <div style="font-size:48px;margin-bottom:12px">👈</div>
+              <h3 class="font-semibold mb-2">Select a Student</h3>
+              <p class="text-sm text-muted">Click any student row to view their detailed profile and performance.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="grid-4col">
+        <a href="/failure-prediction"><button class="btn btn-primary btn-flex-col btn-full" style="background:linear-gradient(135deg,var(--primary),var(--accent))"><i data-lucide="zap" style="width:24px;height:24px"></i>AI Risk Prediction</button></a>
+        <a href="/analytics"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="bar-chart-3" style="width:24px;height:24px"></i>View Analytics</button></a>
+        <button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="mail" style="width:24px;height:24px"></i>Message All</button>
+        <button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="download" style="width:24px;height:24px"></i>Export Report</button>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+
+const students = [
+  { id:1, name:'Christian Razil',    seed:'razil',   course:'Python Programming', progress:92, score:95, attend:96, status:'on-track',   lastActive:'Today',    quiz:94, assign:96, streak:45 },
+  { id:2, name:'Priya Baldh',   seed:'priya',    course:'Data Structures',    progress:55, score:48, attend:65, status:'at-risk',    lastActive:'3 days ago',quiz:45, assign:55, streak:2  },
+  { id:3, name:'Yash Varmora',  seed:'yash',    course:'Web Development',    progress:78, score:82, attend:88, status:'on-track',   lastActive:'Today',    quiz:80, assign:84, streak:12 },
+  { id:4, name:'Mohammed Rehan Ansari',  seed:'rehan',   course:'Python Programming', progress:60, score:62, attend:70, status:'needs-help', lastActive:'2 days ago',quiz:58, assign:62, streak:5  },
+  { id:5, name:'Jainam Suthar',    seed:'jainam',    course:'Machine Learning',   progress:85, score:88, attend:92, status:'on-track',   lastActive:'Today',    quiz:86, assign:90, streak:28 },
+  { id:6, name:'Parth Upadhyay',     seed:'parth',   course:'Web Development',    progress:62, score:64, attend:75, status:'needs-help', lastActive:'1 day ago', quiz:60, assign:65, streak:7  },
+  { id:7, name:'Sophie Chen',   seed:'sophie',  course:'Data Structures',    progress:70, score:74, attend:82, status:'on-track',   lastActive:'Today',    quiz:72, assign:76, streak:18 },
+  { id:8, name:'James Wilson',  seed:'james',   course:'Machine Learning',   progress:68, score:70, attend:80, status:'needs-help', lastActive:'2 hours ago',quiz:68,assign:72, streak:10 },
+  { id:9, name:'Ryan Park',     seed:'ryan',    course:'Python Programming', progress:88, score:90, attend:94, status:'on-track',   lastActive:'Today',    quiz:89, assign:91, streak:35 },
+  { id:10,name:'Priya Patel',   seed:'priya',   course:'Web Development',    progress:45, score:42, attend:60, status:'at-risk',    lastActive:'4 days ago',quiz:40, assign:45, streak:1  },
+];
+
+const statusConfig = {
+  'on-track':   { label:'On Track',   badgeClass:'badge-green',  barColor:'var(--primary)' },
+  'needs-help': { label:'Needs Help', badgeClass:'badge-yellow', barColor:'#ca8a04' },
+  'at-risk':    { label:'At Risk',    badgeClass:'badge-red',    barColor:'#ef4444' },
+};
+
+let activeFilter = 'all';
+let selectedId = null;
+
+function renderTable(data) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  document.getElementById('countLabel').textContent = `Showing ${data.length} students — click a row to view details`;
+  data.forEach(s => {
+    const sc = statusConfig[s.status];
+    const tr = document.createElement('tr');
+    tr.className = `student-row ${selectedId === s.id ? 'selected' : ''}`;
+    tr.style.borderBottom = '1px solid var(--border)';
+    tr.setAttribute('data-status', s.status);
+    tr.setAttribute('data-course', s.course);
+    tr.setAttribute('data-name', s.name.toLowerCase());
+    tr.onclick = () => selectStudent(s.id);
+    tr.innerHTML = `
+      <td style="padding:12px 16px">
+        <div class="flex items-center gap-3">
+          <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${s.seed}" alt=""></div>
+          <div><p class="font-medium text-sm">${s.name}</p><p class="text-xs text-muted">${s.lastActive}</p></div>
+        </div>
+      </td>
+      <td style="padding:12px 16px;font-size:12px;color:#475569;max-width:130px">${s.course}</td>
+      <td style="padding:12px 16px;min-width:100px">
+        <div class="progress" style="height:5px;margin-bottom:3px"><div class="progress-bar" style="width:${s.progress}%;background:${sc.barColor}"></div></div>
+        <span class="text-xs text-muted">${s.progress}%</span>
+      </td>
+      <td style="padding:12px 16px"><span class="font-semibold text-sm" style="color:${s.score>=80?'var(--primary)':s.score>=65?'#ca8a04':'var(--destructive)'}">${s.score}/100</span></td>
+      <td style="padding:12px 16px"><span class="text-sm font-medium">${s.attend}%</span></td>
+      <td style="padding:12px 16px"><span class="badge ${sc.badgeClass}">${sc.label}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  lucide.createIcons();
+}
+
+function selectStudent(id) {
+  selectedId = id;
+  const s = students.find(x => x.id === id);
+  const sc = statusConfig[s.status];
+
+  // Highlight selected row
+  document.querySelectorAll('.student-row').forEach(r => r.classList.remove('selected'));
+  document.querySelectorAll('.student-row').forEach(r => {
+    if (r.querySelector('.font-medium.text-sm') && r.querySelector('.font-medium.text-sm').textContent === s.name) r.classList.add('selected');
+  });
+
+  const riskColor = s.status === 'at-risk' ? '#ef4444' : s.status === 'needs-help' ? '#ca8a04' : '#16a34a';
+  const riskScore = s.status === 'at-risk' ? Math.round(s.attend*0.4 + s.assign*0.3 + s.quiz*0.3) : s.status === 'needs-help' ? Math.round(s.attend*0.4 + s.assign*0.3 + s.quiz*0.3) : Math.round(s.attend*0.4 + s.assign*0.3 + s.quiz*0.3);
+
+  document.getElementById('detailPanel').innerHTML = `
+    <div class="card">
+      <div style="background:linear-gradient(135deg,#1e1b4b,#4c1d95);padding:24px;text-align:center">
+        <div class="avatar" style="width:72px;height:72px;margin:0 auto 12px;border:3px solid rgba(255,255,255,0.3)">
+          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${s.seed}" alt="">
+        </div>
+        <h3 class="font-bold text-white" style="font-size:18px">${s.name}</h3>
+        <p style="color:rgba(255,255,255,0.7);font-size:13px;margin-top:4px">${s.course}</p>
+        <div class="flex justify-center gap-2 mt-3">
+          <span class="badge ${sc.badgeClass}">${sc.label}</span>
+          <span class="badge" style="background:rgba(255,255,255,0.15);color:#fff">Last: ${s.lastActive}</span>
+        </div>
+      </div>
+      <div class="card-content space-y-4" style="padding:20px">
+
+        <!-- Stats grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="p-3 rounded text-center" style="background:#eff6ff">
+            <p class="font-bold text-primary" style="font-size:22px">${s.score}</p>
+            <p class="text-xs text-muted">Score</p>
+          </div>
+          <div class="p-3 rounded text-center" style="background:#faf5ff">
+            <p class="font-bold text-accent" style="font-size:22px">${s.attend}%</p>
+            <p class="text-xs text-muted">Attendance</p>
+          </div>
+          <div class="p-3 rounded text-center" style="background:#f0fdf4">
+            <p class="font-bold text-green" style="font-size:22px">${s.quiz}%</p>
+            <p class="text-xs text-muted">Quiz Avg</p>
+          </div>
+          <div class="p-3 rounded text-center" style="background:#fffbeb">
+            <p class="font-bold" style="font-size:22px;color:#f59e0b">🔥${s.streak}d</p>
+            <p class="text-xs text-muted">Streak</p>
+          </div>
+        </div>
+
+        <!-- Progress bars -->
+        <div>
+          <div class="flex justify-between mb-1"><span class="text-xs text-muted">Course Progress</span><span class="text-xs font-bold">${s.progress}%</span></div>
+          <div class="progress" style="height:7px"><div class="progress-bar" style="width:${s.progress}%;background:${sc.barColor}"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between mb-1"><span class="text-xs text-muted">Assignment Completion</span><span class="text-xs font-bold">${s.assign}%</span></div>
+          <div class="progress" style="height:7px"><div class="progress-bar" style="width:${s.assign}%;background:var(--primary)"></div></div>
+        </div>
+
+        <!-- Risk score -->
+        <div class="p-3 rounded" style="background:${s.status==='at-risk'?'#fef2f2':s.status==='needs-help'?'#fefce8':'#f0fdf4'};border:1px solid ${s.status==='at-risk'?'#fecaca':s.status==='needs-help'?'#fde047':'#86efac'}">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-xs font-semibold">AI Risk Score</span>
+            <span class="font-bold text-sm" style="color:${riskColor}">${riskScore}%</span>
+          </div>
+          <div class="progress" style="height:6px;background:${s.status==='at-risk'?'#fecaca':s.status==='needs-help'?'#fef9c3':'#dcfce7'}">
+            <div style="width:${riskScore}%;height:100%;border-radius:9999px;background:${riskColor}"></div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="space-y-2">
+          <button class="btn btn-primary btn-full" style="background:linear-gradient(135deg,var(--primary),var(--accent))">
+            <i data-lucide="message-square" style="width:16px;height:16px"></i> Send Message
+          </button>
+          <a href="/failure-prediction">
+            <button class="btn btn-outline btn-full">
+              <i data-lucide="zap" style="width:16px;height:16px"></i> Run AI Prediction
+            </button>
+          </a>
+          <button class="btn btn-outline btn-full">
+            <i data-lucide="file-text" style="width:16px;height:16px"></i> View Full Report
+          </button>
+        </div>
+
+      </div>
+    </div>
+  `;
+  lucide.createIcons();
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const course = document.getElementById('courseFilter').value;
+  const filtered = students.filter(s => {
+    const matchF = activeFilter === 'all' || s.status === activeFilter;
+    const matchS = s.name.toLowerCase().includes(q);
+    const matchC = course === 'all' || s.course.includes(course);
+    return matchF && matchS && matchC;
+  });
+  renderTable(filtered);
+}
+
+// Initial render
+renderTable(students);
+</script>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

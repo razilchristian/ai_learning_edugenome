@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - Failure Prediction</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/teacher"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/mystudents"><button class="nav-btn"><i data-lucide="users" style="width:16px;height:16px"></i>My Students</button></a>
+      <a href="/mycourseteacher"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
+      <a href="/failure-prediction"><button class="nav-btn active"><i data-lucide="alert-triangle" style="width:16px;height:16px"></i>Failure Prediction</button></a>
+      <a href="/analytics"><button class="nav-btn"><i data-lucide="bar-chart-3" style="width:16px;height:16px"></i>Analytics</button></a>
+      <a href="/settings"><button class="nav-btn"><i data-lucide="settings" style="width:16px;height:16px"></i>Settings</button></a>
+    </nav>
+    <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div>
+        <h2 class="font-bold" style="font-size:20px;color:#fff">AI Failure Prediction</h2>
+        <p class="text-sm" style="color:rgba(255,255,255,0.75)">Early intervention system for at-risk students</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon relative"><i data-lucide="bell" style="width:20px;height:20px"></i><span class="notif-dot"></span></button>
+        <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=teacher" alt="Avatar"></div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- ══════════════════════════════════
+           AI PREDICTION FORM
+      ══════════════════════════════════ -->
+      <div class="card" style="border-top: 4px solid var(--accent);">
+        <div class="card-header">
+          <div class="card-title">
+            <i data-lucide="brain" style="width:22px;height:22px;color:var(--accent)"></i>
+            AI Risk Predictor
+          </div>
+          <div class="card-desc">Enter student metrics to instantly predict their risk level using our weighted AI model</div>
+        </div>
+        <div class="card-content">
+          <form action="/predict-risk" method="post" class="predict-form">
+            <div class="form-row">
+              <div>
+                <label class="label" style="color:#4c1d95;font-weight:600">
+                  <i data-lucide="calendar-check" style="width:14px;height:14px;display:inline;vertical-align:middle;margin-right:4px"></i>
+                  Attendance (%)
+                </label>
+                <input type="number" name="attendance" class="input" placeholder="e.g. 40" min="0" max="100" required
+                  value="<%= locals.inputs ? inputs.attendance : '' %>"
+                  style="border-color:rgba(124,58,237,0.3);font-size:16px;padding:10px 14px;">
+                <p class="text-xs text-muted mt-1">Weight: 40% of score</p>
+              </div>
+              <div>
+                <label class="label" style="color:#4c1d95;font-weight:600">
+                  <i data-lucide="file-text" style="width:14px;height:14px;display:inline;vertical-align:middle;margin-right:4px"></i>
+                  Assignment Score (%)
+                </label>
+                <input type="number" name="assignment" class="input" placeholder="e.g. 50" min="0" max="100" required
+                  value="<%= locals.inputs ? inputs.assignment : '' %>"
+                  style="border-color:rgba(124,58,237,0.3);font-size:16px;padding:10px 14px;">
+                <p class="text-xs text-muted mt-1">Weight: 30% of score</p>
+              </div>
+              <div>
+                <label class="label" style="color:#4c1d95;font-weight:600">
+                  <i data-lucide="help-circle" style="width:14px;height:14px;display:inline;vertical-align:middle;margin-right:4px"></i>
+                  Quiz Score (%)
+                </label>
+                <input type="number" name="quiz" class="input" placeholder="e.g. 45" min="0" max="100" required
+                  value="<%= locals.inputs ? inputs.quiz : '' %>"
+                  style="border-color:rgba(124,58,237,0.3);font-size:16px;padding:10px 14px;">
+                <p class="text-xs text-muted mt-1">Weight: 30% of score</p>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <button type="submit" class="btn btn-primary" style="background:linear-gradient(135deg,var(--primary),var(--accent));padding:12px 32px;font-size:15px;box-shadow:0 4px 16px rgba(124,58,237,0.3)">
+                <i data-lucide="zap" style="width:18px;height:18px"></i>
+                Predict Risk Level
+              </button>
+              <a href="/failure-prediction"><button type="button" class="btn btn-outline">Reset</button></a>
+            </div>
+          </form>
+
+          <!-- ── PREDICTION RESULT ── -->
+          <% if (locals.result) { %>
+          <div class="mt-4">
+            <% if (result === "High Risk") { %>
+            <div class="predict-result result-high">
+              <div style="font-size:40px;margin-bottom:8px">🚨</div>
+              <div style="font-size:22px;margin-bottom:6px"><%= result %></div>
+              <div style="font-size:15px;font-weight:400;opacity:0.85">Composite Score: <%= score %>% &nbsp;|&nbsp; Immediate intervention recommended</div>
+              <div class="flex gap-3 justify-center mt-4">
+                <span class="badge badge-red">Attendance: <%= inputs.attendance %>%</span>
+                <span class="badge badge-red">Assignment: <%= inputs.assignment %>%</span>
+                <span class="badge badge-red">Quiz: <%= inputs.quiz %>%</span>
+              </div>
+            </div>
+            <% } else if (result === "Medium Risk") { %>
+            <div class="predict-result result-medium">
+              <div style="font-size:40px;margin-bottom:8px">⚠️</div>
+              <div style="font-size:22px;margin-bottom:6px"><%= result %></div>
+              <div style="font-size:15px;font-weight:400;opacity:0.85">Composite Score: <%= score %>% &nbsp;|&nbsp; Monitor closely and provide support</div>
+              <div class="flex gap-3 justify-center mt-4">
+                <span class="badge badge-yellow">Attendance: <%= inputs.attendance %>%</span>
+                <span class="badge badge-yellow">Assignment: <%= inputs.assignment %>%</span>
+                <span class="badge badge-yellow">Quiz: <%= inputs.quiz %>%</span>
+              </div>
+            </div>
+            <% } else { %>
+            <div class="predict-result result-low">
+              <div style="font-size:40px;margin-bottom:8px">✅</div>
+              <div style="font-size:22px;margin-bottom:6px"><%= result %></div>
+              <div style="font-size:15px;font-weight:400;opacity:0.85">Composite Score: <%= score %>% &nbsp;|&nbsp; Student is performing well</div>
+              <div class="flex gap-3 justify-center mt-4">
+                <span class="badge badge-green">Attendance: <%= inputs.attendance %>%</span>
+                <span class="badge badge-green">Assignment: <%= inputs.assignment %>%</span>
+                <span class="badge badge-green">Quiz: <%= inputs.quiz %>%</span>
+              </div>
+            </div>
+            <% } %>
+          </div>
+          <% } %>
+
+          <!-- Formula explanation -->
+          <div class="mt-4 p-3 rounded" style="background:#f5f3ff;border:1px solid #ddd6fe">
+            <p class="text-xs" style="color:#6d28d9"><strong>📐 AI Formula:</strong> Risk Score = (Attendance × 0.4) + (Assignment × 0.3) + (Quiz × 0.3) &nbsp;|&nbsp; &lt;50 = High Risk &nbsp;|&nbsp; 50–70 = Medium Risk &nbsp;|&nbsp; &gt;70 = Low Risk</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert Banner -->
+      <div class="card" style="background:linear-gradient(135deg,#fef2f2,#fff7ed,#fefce8);border-color:#fdba74">
+        <div class="card-content" style="padding:24px">
+          <div class="flex items-start gap-4">
+            <div class="icon-circle" style="background:#f97316;width:48px;height:48px;flex-shrink:0">
+              <i data-lucide="alert-triangle" style="width:24px;height:24px;color:#fff"></i>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-bold mb-2" style="font-size:18px">AI Prediction Alert</h3>
+              <p class="text-slate-700 mb-3">Our AI has identified <strong>5 students</strong> who may be at risk of falling behind. Early intervention can improve their chances of success by up to <strong>75%</strong>.</p>
+              <div class="flex gap-2">
+                <span class="badge badge-red">2 High Risk</span>
+                <span class="badge badge-yellow">3 Medium Risk</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="metric-cards">
+        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">Total At Risk</p><p class="font-bold text-red" style="font-size:28px">5</p></div><i data-lucide="alert-triangle" style="width:40px;height:40px;color:var(--destructive)"></i></div></div></div>
+        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">High Risk</p><p class="font-bold text-red" style="font-size:28px">2</p></div><i data-lucide="trending-down" style="width:40px;height:40px;color:var(--destructive)"></i></div></div></div>
+        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">Medium Risk</p><p class="font-bold" style="font-size:28px;color:#ca8a04">3</p></div><i data-lucide="clock" style="width:40px;height:40px;color:#ca8a04"></i></div></div></div>
+        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">Interventions</p><p class="font-bold text-green" style="font-size:28px">12</p></div><i data-lucide="check-circle-2" style="width:40px;height:40px;color:#16a34a"></i></div></div></div>
+      </div>
+
+      <!-- Students + Analysis -->
+      <div class="grid-2col">
+        <!-- At-Risk Students List -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i data-lucide="alert-triangle" style="width:20px;height:20px;color:var(--destructive)"></i>At-Risk Students</div>
+            <div class="card-desc">Click on a student to view detailed analysis</div>
+          </div>
+          <div class="card-content space-y-3">
+            <div class="p-4 rounded cursor-pointer transition risk-high" style="border:2px solid" onclick="selectStudent(1)">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=alex" alt=""></div>
+                <div class="flex-1"><p class="font-semibold">Alex Turner</p><p class="text-xs">Last active: 3 days ago</p></div>
+                <span class="badge badge-red">High Risk</span>
+              </div>
+              <div class="space-y-2"><div class="flex justify-between text-sm"><span>Risk Score</span><span class="font-bold">85%</span></div><div class="progress" style="background:#fecaca"><div class="progress-bar" style="width:85%;background:#ef4444"></div></div></div>
+              <div class="flex gap-4 mt-3 text-xs"><span>📅 Attend: 65%</span><span>📝 Assign: 55%</span></div>
+            </div>
+            <div class="p-4 rounded cursor-pointer transition risk-high" style="border:2px solid" onclick="selectStudent(2)">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=maria" alt=""></div>
+                <div class="flex-1"><p class="font-semibold">Maria Garcia</p><p class="text-xs">Last active: 2 days ago</p></div>
+                <span class="badge badge-red">High Risk</span>
+              </div>
+              <div class="space-y-2"><div class="flex justify-between text-sm"><span>Risk Score</span><span class="font-bold">72%</span></div><div class="progress" style="background:#fecaca"><div class="progress-bar" style="width:72%;background:#ef4444"></div></div></div>
+              <div class="flex gap-4 mt-3 text-xs"><span>📅 Attend: 70%</span><span>📝 Assign: 60%</span></div>
+            </div>
+            <div class="p-4 rounded cursor-pointer transition risk-medium" style="border:2px solid" onclick="selectStudent(3)">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=david" alt=""></div>
+                <div class="flex-1"><p class="font-semibold">David Lee</p><p class="text-xs">Last active: 1 day ago</p></div>
+                <span class="badge badge-yellow">Medium Risk</span>
+              </div>
+              <div class="space-y-2"><div class="flex justify-between text-sm"><span>Risk Score</span><span class="font-bold">68%</span></div><div class="progress" style="background:#fef9c3"><div class="progress-bar" style="width:68%;background:#ca8a04"></div></div></div>
+              <div class="flex gap-4 mt-3 text-xs"><span>📅 Attend: 75%</span><span>📝 Assign: 65%</span></div>
+            </div>
+            <div class="p-4 rounded cursor-pointer transition risk-medium" style="border:2px solid" onclick="selectStudent(4)">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sophie" alt=""></div>
+                <div class="flex-1"><p class="font-semibold">Sophie Chen</p><p class="text-xs">Last active: 5 hours ago</p></div>
+                <span class="badge badge-yellow">Medium Risk</span>
+              </div>
+              <div class="space-y-2"><div class="flex justify-between text-sm"><span>Risk Score</span><span class="font-bold">62%</span></div><div class="progress" style="background:#fef9c3"><div class="progress-bar" style="width:62%;background:#ca8a04"></div></div></div>
+              <div class="flex gap-4 mt-3 text-xs"><span>📅 Attend: 78%</span><span>📝 Assign: 70%</span></div>
+            </div>
+            <div class="p-4 rounded cursor-pointer transition risk-medium" style="border:2px solid" onclick="selectStudent(5)">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=james" alt=""></div>
+                <div class="flex-1"><p class="font-semibold">James Wilson</p><p class="text-xs">Last active: 2 hours ago</p></div>
+                <span class="badge badge-yellow">Medium Risk</span>
+              </div>
+              <div class="space-y-2"><div class="flex justify-between text-sm"><span>Risk Score</span><span class="font-bold">55%</span></div><div class="progress" style="background:#fef9c3"><div class="progress-bar" style="width:55%;background:#ca8a04"></div></div></div>
+              <div class="flex gap-4 mt-3 text-xs"><span>📅 Attend: 82%</span><span>📝 Assign: 75%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Analysis -->
+        <div class="flex flex-col gap-4">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="brain" style="width:20px;height:20px;color:var(--accent)"></i>Detailed Risk Analysis</div>
+              <div class="card-desc" id="analysisName">Performance breakdown for Alex Turner</div>
+            </div>
+            <div class="card-content">
+              <canvas id="radarChart" height="260"></canvas>
+              <div class="grid-2col mt-4" style="gap:12px">
+                <div class="p-3 rounded" style="background:#fef2f2">
+                  <div class="flex items-center gap-2 mb-1"><i data-lucide="x-circle" style="width:16px;height:16px;color:var(--destructive)"></i><span class="text-xs font-semibold">Critical Areas</span></div>
+                  <p class="text-xs text-slate-700" id="critAreas">Low quiz scores, poor engagement</p>
+                </div>
+                <div class="p-3 rounded" style="background:#f0fdf4">
+                  <div class="flex items-center gap-2 mb-1"><i data-lucide="check-circle-2" style="width:16px;height:16px;color:#16a34a"></i><span class="text-xs font-semibold">Strengths</span></div>
+                  <p class="text-xs text-slate-700" id="strengths">Good attendance pattern</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="check-circle-2" style="width:20px;height:20px;color:#16a34a"></i>Suggested Actions</div>
+              <div class="card-desc">AI-recommended interventions</div>
+            </div>
+            <div class="card-content space-y-3">
+              <div class="flex items-start gap-3 p-3 rounded" style="background:#f8fafc">
+                <div class="icon-circle" style="background:rgba(37,99,235,0.1)"><i data-lucide="message-square" style="width:20px;height:20px;color:var(--primary)"></i></div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1"><h4 class="font-semibold text-sm">Schedule 1-on-1 Meeting</h4><span class="badge badge-red" style="font-size:10px">High Priority</span></div>
+                  <p class="text-xs text-slate-600">Discuss challenges and provide personalized support</p>
+                  <button class="btn btn-outline btn-sm mt-2">Take Action</button>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 rounded" style="background:#f8fafc">
+                <div class="icon-circle" style="background:rgba(37,99,235,0.1)"><i data-lucide="file-text" style="width:20px;height:20px;color:var(--primary)"></i></div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1"><h4 class="font-semibold text-sm">Assign Remedial Materials</h4><span class="badge badge-red" style="font-size:10px">High Priority</span></div>
+                  <p class="text-xs text-slate-600">Provide additional resources for struggling topics</p>
+                  <button class="btn btn-outline btn-sm mt-2">Take Action</button>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 p-3 rounded" style="background:#f8fafc">
+                <div class="icon-circle" style="background:rgba(37,99,235,0.1)"><i data-lucide="calendar" style="width:20px;height:20px;color:var(--primary)"></i></div>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-sm mb-1">Create Study Plan</h4>
+                  <p class="text-xs text-slate-600">AI-generated personalized study schedule</p>
+                  <button class="btn btn-outline btn-sm mt-2">Take Action</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+
+const studentData = {
+  1: { name:'Alex Turner', data:[65,55,48,45,50], crit:'Low quiz scores, poor engagement', str:'Good attendance pattern' },
+  2: { name:'Maria Garcia', data:[70,60,52,55,58], crit:'Poor quiz performance, low engagement', str:'Regular class attendance' },
+  3: { name:'David Lee', data:[75,65,58,60,62], crit:'Declining quiz scores', str:'Good assignment completion' },
+  4: { name:'Sophie Chen', data:[78,70,62,65,67], crit:'Moderate engagement issues', str:'Strong attendance, decent assignments' },
+  5: { name:'James Wilson', data:[82,75,65,70,68], crit:'Slightly below average quiz scores', str:'Good attendance and engagement' }
+};
+
+const radarChart = new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Attendance','Assignments','Quiz Scores','Engagement','Participation'],
+    datasets: [{ label:'Performance', data:[65,55,48,45,50], backgroundColor:'rgba(239,68,68,0.4)', borderColor:'#ef4444', borderWidth:2, pointBackgroundColor:'#ef4444' }]
+  },
+  options: { responsive:true, scales:{ r:{ beginAtZero:true, max:100, ticks:{stepSize:20} } }, plugins:{legend:{display:false}} }
+});
+
+function selectStudent(id) {
+  const s = studentData[id];
+  radarChart.data.datasets[0].data = s.data;
+  radarChart.update();
+  document.getElementById('analysisName').textContent = 'Performance breakdown for ' + s.name;
+  document.getElementById('critAreas').textContent = s.crit;
+  document.getElementById('strengths').textContent = s.str;
+}
+</script>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>
