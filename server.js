@@ -180,6 +180,8 @@ app.get('/settings', authenticate, (req, res) =>
     res.render('settings.html', { user: req.user })
 );
 
+app.use('/static', express.static('static'));
+
 // ================= EXPORT =================
 module.exports = serverless(app);
 
