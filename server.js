@@ -14,16 +14,16 @@ const app = express();
 
 // ENV
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
+// Debug check
 if (!GEMINI_API_KEY) {
-    console.warn('WARNING: GEMINI_API_KEY not set');
+    console.warn('⚠️ GEMINI_API_KEY missing');
 }
 
-// 🔥 FIXED DB (Vercel-safe)
+// 🔥 DB (serverless safe)
 const db = new sqlite3.Database(':memory:');
 
-// Create table (runs every cold start)
 db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS users (
@@ -42,12 +42,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use('/static', express.static(path.join(__dirname, 'static')));
 
-// View engine
+// Views
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'templates'));
 
-// Auth Middleware
+// Auth middleware
 const authenticate = (req, res, next) => {
     const token = req.cookies.token;
     if (!token) return res.redirect('/login');
@@ -61,7 +61,7 @@ const authenticate = (req, res, next) => {
     }
 };
 
-// 🔥 ROOT ROUTE (IMPORTANT FOR TEST)
+// ✅ ROOT (IMPORTANT)
 app.get('/', (req, res) => {
     res.send("EduGenome is running 🚀");
 });
@@ -72,6 +72,10 @@ app.get('/', (req, res) => {
 app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ error: "Missing fields" });
+        }
 
         const hashed = await bcrypt.hash(password, 10);
 
@@ -88,24 +92,30 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Login
+// Login (SAFE VERSION)
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
     db.get(`SELECT * FROM users WHERE email=?`, [email], async (err, user) => {
+        if (err) return res.status(500).json({ error: 'DB error' });
         if (!user) return res.status(401).json({ error: 'Invalid login' });
 
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) return res.status(401).json({ error: 'Invalid login' });
+        try {
+            const match = await bcrypt.compare(password, user.password);
+            if (!match) return res.status(401).json({ error: 'Invalid login' });
 
-        const token = jwt.sign(user, JWT_SECRET);
+            const token = jwt.sign(user, JWT_SECRET);
 
-        res.cookie('token', token, { httpOnly: true });
-        res.json({ message: 'Login success' });
+            res.cookie('token', token, { httpOnly: true });
+            res.json({ message: 'Login success' });
+
+        } catch {
+            res.status(500).json({ error: 'Login failed' });
+        }
     });
 });
 
-// Gemini Chat
+// Chat
 app.post('/api/chat', authenticate, async (req, res) => {
     try {
         const { system, messages } = req.body;
@@ -127,7 +137,7 @@ app.post('/api/chat', authenticate, async (req, res) => {
         res.json({ text });
 
     } catch (err) {
-        console.error(err);
+        console.error("Chat error:", err.message);
         res.status(500).json({ error: "AI error" });
     }
 });
@@ -140,6 +150,6 @@ app.get('/student', authenticate, (req, res) =>
     res.render('student_dashboard.html', { user: req.user })
 );
 
-// ================= EXPORT (VERY IMPORTANT) =================
+// ================= EXPORT =================
 
 module.exports = serverless(app);
