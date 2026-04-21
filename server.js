@@ -156,9 +156,9 @@ app.get('/ai-tutor', authenticate, (req, res) =>
 app.get('/gamification', authenticate, (req, res) => {
     res.render('gamification.html', { user: req.user });
 });
-app.get('/settings', authenticate, (req, res) =>
-    res.render('settings.html')
-);
+app.get('/settings', authenticate, (req, res) => {
+    res.render('settings.html', { user: req.user });
+});
 
 // ================= EXPORT =================
 module.exports = serverless(app);
