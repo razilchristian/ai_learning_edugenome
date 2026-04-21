@@ -12,16 +12,15 @@ dotenv.config();
 
 const app = express();
 
-// ENV
+// ================= ENV =================
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// Debug check
 if (!GEMINI_API_KEY) {
     console.warn('⚠️ GEMINI_API_KEY missing');
 }
 
-// 🔥 DB (serverless safe)
+// ================= DB =================
 const db = new sqlite3.Database(':memory:');
 
 db.serialize(() => {
@@ -36,18 +35,18 @@ db.serialize(() => {
     `);
 });
 
-// Middleware
+// ================= MIDDLEWARE =================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use('/static', express.static(path.join(__dirname, 'static')));
 
-// Views
+// ================= VIEWS =================
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'templates'));
 
-// Auth middleware
+// ================= AUTH =================
 const authenticate = (req, res, next) => {
     const token = req.cookies.token;
     if (!token) return res.redirect('/login');
@@ -61,7 +60,7 @@ const authenticate = (req, res, next) => {
     }
 };
 
-// ✅ ROOT (IMPORTANT)
+// ================= ROOT =================
 app.get('/', (req, res) => {
     res.send("EduGenome is running 🚀");
 });
@@ -87,12 +86,13 @@ app.post('/api/register', async (req, res) => {
                 res.json({ message: 'User created', id: this.lastID });
             }
         );
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Login (SAFE VERSION)
+// Login
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
@@ -150,6 +150,14 @@ app.get('/student', authenticate, (req, res) =>
     res.render('student_dashboard.html', { user: req.user })
 );
 
-// ================= EXPORT =================
-
+// ================= EXPORT (VERCEL) =================
 module.exports = serverless(app);
+
+// ================= LOCALHOST =================
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = 3000;
+
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
+}
