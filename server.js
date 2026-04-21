@@ -45,7 +45,6 @@ app.set('views', path.join(__dirname, 'templates'));
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
     const token = req.cookies.token;
-
     if (!token) return res.redirect('/login');
 
     try {
@@ -53,13 +52,13 @@ const authenticate = (req, res, next) => {
         next();
     } catch {
         res.clearCookie('token');
-        return res.redirect('/login');
+        res.redirect('/login');
     }
 };
 
-// ================= ROOT =================
+// ================= ROOT (FIXED UI) =================
 app.get('/', (req, res) => {
-    res.redirect('/login');
+    res.redirect('/login'); // 👈 now UI loads directly
 });
 
 // ================= API =================
@@ -69,20 +68,14 @@ app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
 
-        if (!name || !email || !password) {
-            return res.status(400).json({ error: "All fields required" });
-        }
-
         const hashed = await bcrypt.hash(password, 10);
 
         db.run(
             `INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)`,
             [name, email, hashed, role || 'student'],
             function (err) {
-                if (err) {
-                    return res.status(400).json({ error: "User already exists" });
-                }
-                res.json({ message: 'User created successfully' });
+                if (err) return res.status(400).json({ error: err.message });
+                res.json({ message: 'User created' });
             }
         );
 
@@ -91,40 +84,20 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Login (UPDATED 🔥)
+// Login
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
     db.get(`SELECT * FROM users WHERE email=?`, [email], async (err, user) => {
-        if (err) return res.status(500).json({ error: 'DB error' });
         if (!user) return res.status(401).json({ error: 'Invalid login' });
 
-        try {
-            const match = await bcrypt.compare(password, user.password);
-            if (!match) return res.status(401).json({ error: 'Invalid login' });
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return res.status(401).json({ error: 'Invalid login' });
 
-            // 🔥 TOKEN
-            const token = jwt.sign(
-                { id: user.id, role: user.role, name: user.name },
-                JWT_SECRET,
-                { expiresIn: '24h' }
-            );
+        const token = jwt.sign(user, JWT_SECRET);
+        res.cookie('token', token, { httpOnly: true });
 
-            res.cookie('token', token, { httpOnly: true });
-
-            // 🔥 ROLE BASED REDIRECT
-            let redirect = "/student";
-            if (user.role === "teacher") redirect = "/teacher";
-            if (user.role === "admin") redirect = "/admin";
-
-            res.json({
-                message: "Login success",
-                redirect: redirect
-            });
-
-        } catch {
-            res.status(500).json({ error: 'Login failed' });
-        }
+        res.json({ message: 'Login success' });
     });
 });
 
@@ -150,7 +123,6 @@ app.post('/api/chat', authenticate, async (req, res) => {
         res.json({ text });
 
     } catch (err) {
-        console.error(err.message);
         res.status(500).json({ error: "AI error" });
     }
 });
@@ -163,14 +135,9 @@ app.get('/student', authenticate, (req, res) =>
     res.render('student_dashboard.html', { user: req.user })
 );
 
-// (optional future)
-app.get('/teacher', authenticate, (req, res) =>
-    res.send("Teacher dashboard")
-);
-
-app.get('/admin', authenticate, (req, res) =>
-    res.send("Admin dashboard")
-);
+// Optional pages (your structure supports them)
+app.get('/landing', (req, res) => res.render('landing.html'));
+app.get('/courses', authenticate, (req, res) => res.render('mycourses.html'));
 
 // ================= EXPORT =================
 module.exports = serverless(app);
