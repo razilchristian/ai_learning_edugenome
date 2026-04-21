@@ -200,20 +200,24 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, role: currentRole })
           });
+
           const data = await res.json();
+
           if (res.ok) {
-            window.location.href = data.redirect || "/student";
+            if (data.redirect && data.redirect !== "undefined") {
+              window.location.href = data.redirect;
+            } else {
+              window.location.href = "/student";
+            }
           } else {
             alert(data.error || 'Invalid email or password');
           }
+
         } catch (e) {
           alert('Server error');
         }
-      }
-    }
-
-    // Init UI
-    updateUI();
+        // Init UI
+        updateUI();
   </script>
 </body>
 
