@@ -149,44 +149,55 @@ app.post('/api/chat', authenticate, async (req, res) => {
 
 // ================= UI ROUTES =================
 
-app.get('/login', (req, res) => res.render('login.html'));
+// ROOT → login page
+app.get('/', (req, res) => {
+    res.render('login.html');
+});
 
-app.get('/student', authenticate, (req, res) =>
-    res.render('student_dashboard.html', { user: req.user })
-);
+// Login
+app.get('/login', (req, res) => {
+    res.render('login.html');
+});
 
-app.get('/teacher', authenticate, (req, res) =>
-    res.render('teacher_dashboard.html', { user: req.user })
-);
+// Student
+app.get('/student', authenticate, (req, res) => {
+    res.render('student_dashboard.html', { user: req.user });
+});
 
-app.get('/admin', authenticate, (req, res) =>
-    res.render('admin_dashboard.html', { user: req.user })
-);
+// Teacher
+app.get('/teacher', authenticate, (req, res) => {
+    res.render('teacher_dashboard.html', { user: req.user });
+});
 
-app.get('/mycourses', authenticate, (req, res) =>
-    res.render('mycourses.html', { user: req.user })
-);
+// Admin
+app.get('/admin', authenticate, (req, res) => {
+    res.render('admin_dashboard.html', { user: req.user });
+});
 
-app.get('/learning-path', authenticate, (req, res) =>
-    res.render('learning_path.html', { user: req.user })
-);
+// Other pages
+app.get('/mycourses', authenticate, (req, res) => {
+    res.render('mycourses.html', { user: req.user });
+});
 
-app.get('/learning-dna', authenticate, (req, res) =>
-    res.render('learning_dna.html', { user: req.user })
-);
+app.get('/learning-path', authenticate, (req, res) => {
+    res.render('learning_path.html', { user: req.user });
+});
 
-app.get('/ai-tutor', authenticate, (req, res) =>
-    res.render('ai_tutor.html', { user: req.user })
-);
+app.get('/learning-dna', authenticate, (req, res) => {
+    res.render('learning_dna.html', { user: req.user });
+});
 
-app.get('/gamification', authenticate, (req, res) =>
-    res.render('gamification.html', { user: req.user })
-);
+app.get('/ai-tutor', authenticate, (req, res) => {
+    res.render('ai_tutor.html', { user: req.user });
+});
 
-app.get('/settings', authenticate, (req, res) =>
-    res.render('settings.html', { user: req.user })
-);
+app.get('/gamification', authenticate, (req, res) => {
+    res.render('gamification.html', { user: req.user });
+});
 
+app.get('/settings', authenticate, (req, res) => {
+    res.render('settings.html', { user: req.user });
+});
 // ================= EXPORT =================
 module.exports = serverless(app);
 
