@@ -19,17 +19,16 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // ================= DB =================
 const db = new Database('database.sqlite');
 
-db.serialize(() => {
-    db.run(`
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT UNIQUE,
-            password TEXT,
-            role TEXT
-        )
-    `);
-});
+// ✅ CREATE TABLE (FIXED)
+db.prepare(`
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        email TEXT UNIQUE,
+        password TEXT,
+        role TEXT
+    )
+`).run();
 
 // ================= MIDDLEWARE =================
 app.use(express.json());
@@ -63,68 +62,64 @@ app.get('/', (req, res) => {
 
 // ================= API =================
 
-// Register
+// ✅ REGISTER (FIXED)
 app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
 
         const hashed = await bcrypt.hash(password, 10);
 
-        db.run(
-            `INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)`,
-            [name, email, hashed, role || 'student'],
-            function (err) {
-                if (err) return res.status(400).json({ error: err.message });
-                res.json({ message: 'User created' });
-            }
-        );
+        db.prepare(`
+            INSERT INTO users (name,email,password,role)
+            VALUES (?,?,?,?)
+        `).run(name, email, hashed, role || 'student');
+
+        res.json({ message: 'User created' });
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(400).json({ error: "User already exists" });
     }
 });
 
-// ✅ FINAL LOGIN (ROLE + REDIRECT FIXED)
-app.post('/api/login', (req, res) => {
+// ✅ LOGIN (FIXED)
+app.post('/api/login', async (req, res) => {
     const { email, password, role } = req.body;
 
-    db.get(`SELECT * FROM users WHERE email=?`, [email], async (err, user) => {
-        if (err) return res.status(500).json({ error: 'DB error' });
+    try {
+        const user = db.prepare(
+            "SELECT * FROM users WHERE email=?"
+        ).get(email);
+
         if (!user) return res.status(401).json({ error: 'Invalid login' });
 
-        // 🔥 ROLE VALIDATION (IMPORTANT)
-        if (user.role !== role) {
+        if (user.role.toLowerCase() !== role.toLowerCase()) {
             return res.status(401).json({
-                error: `You are registered as ${user.role}, not ${role}`
+                error: `Login as ${user.role}`
             });
         }
 
-        try {
-            const match = await bcrypt.compare(password, user.password);
-            if (!match) return res.status(401).json({ error: 'Invalid login' });
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return res.status(401).json({ error: 'Invalid login' });
 
-            // 🔐 Token
-            const token = jwt.sign(user, JWT_SECRET);
-            res.cookie('token', token, { httpOnly: true });
+        const token = jwt.sign(user, JWT_SECRET);
+        res.cookie('token', token, { httpOnly: true });
 
-            // 🚀 Redirect based on role
-            let redirect = '/student';
-            if (user.role === 'teacher') redirect = '/teacher';
-            else if (user.role === 'admin') redirect = '/admin';
+        let redirect = '/student';
+        if (user.role === 'teacher') redirect = '/teacher';
+        else if (user.role === 'admin') redirect = '/admin';
 
-            res.json({
-                message: 'Login success',
-                role: user.role,
-                redirect
-            });
+        res.json({
+            message: 'Login success',
+            role: user.role,
+            redirect
+        });
 
-        } catch (e) {
-            res.status(500).json({ error: 'Login failed' });
-        }
-    });
+    } catch (err) {
+        res.status(500).json({ error: 'Login failed' });
+    }
 });
 
-// Chat (AI)
+// ================= CHAT =================
 app.post('/api/chat', authenticate, async (req, res) => {
     try {
         const { system, messages } = req.body;
@@ -145,7 +140,7 @@ app.post('/api/chat', authenticate, async (req, res) => {
         const text = response.data.candidates[0].content.parts[0].text;
         res.json({ text });
 
-    } catch (err) {
+    } catch {
         res.status(500).json({ error: "AI error" });
     }
 });
@@ -154,22 +149,17 @@ app.post('/api/chat', authenticate, async (req, res) => {
 
 app.get('/login', (req, res) => res.render('login.html'));
 
-// ✅ STUDENT
 app.get('/student', authenticate, (req, res) =>
     res.render('student_dashboard.html', { user: req.user })
 );
 
-// ✅ TEACHER
 app.get('/teacher', authenticate, (req, res) =>
     res.render('teacher_dashboard.html', { user: req.user })
 );
 
-// ✅ ADMIN (optional)
 app.get('/admin', authenticate, (req, res) =>
     res.render('admin_dashboard.html', { user: req.user })
 );
-
-// ✅ ALL PAGES (FIXED WITH USER)
 
 app.get('/mycourses', authenticate, (req, res) =>
     res.render('mycourses.html', { user: req.user })
@@ -195,16 +185,5 @@ app.get('/settings', authenticate, (req, res) =>
     res.render('settings.html', { user: req.user })
 );
 
-app.use('/static', express.static('static'));
-
 // ================= EXPORT =================
 module.exports = serverless(app);
-
-// ================= LOCAL =================
-if (process.env.NODE_ENV !== 'production') {
-    const PORT = 3000;
-
-    app.listen(PORT, () => {
-        console.log(`Server running on http://localhost:${PORT}`);
-    });
-}
