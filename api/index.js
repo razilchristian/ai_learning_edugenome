@@ -1,11 +1,15 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const mongoose = require('mongoose');
+const serverless = require('serverless-http');
+
+dotenv.config();
 
 const app = express();
 
@@ -14,18 +18,19 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 
-// ================= MONGODB - LAZY CACHED CONNECTION =================
-let cachedConn = null;
+// ================= MONGODB CONNECTION (LAZY - fixes 504 timeout) =================
+// On Vercel, do NOT connect at module load time.
+// Connect once on first request and reuse the cached connection.
+let isConnected = false;
 
 async function connectDB() {
-    if (cachedConn && mongoose.connection.readyState === 1) return cachedConn;
-    cachedConn = await mongoose.connect(MONGO_URI, {
-        serverSelectionTimeoutMS: 8000,
+    if (isConnected) return;
+    await mongoose.connect(MONGO_URI, {
+        serverSelectionTimeoutMS: 5000,  // fail fast if MongoDB unreachable
         socketTimeoutMS: 10000,
-        maxPoolSize: 1,
     });
+    isConnected = true;
     console.log('MongoDB connected');
-    return cachedConn;
 }
 
 // ================= USER MODEL =================
@@ -35,18 +40,22 @@ const UserSchema = new mongoose.Schema({
     password: String,
     role: String
 });
+
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
 // ================= MIDDLEWARE =================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Serve static files - on Vercel __dirname is /var/task/api, so go up one level
 app.use('/static', express.static(path.join(__dirname, '../static')));
 
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
     const token = req.cookies.token;
     if (!token) return res.redirect('/login');
+
     try {
         req.user = jwt.verify(token, JWT_SECRET);
         next();
@@ -56,30 +65,30 @@ const authenticate = (req, res, next) => {
     }
 };
 
-// ================= HTML HELPER =================
-const templatePath = (name) => path.join(__dirname, '../templates', name);
-
-const serveHtml = (res, name) => {
-    const filePath = templatePath(name);
+// ================= HELPER: Serve HTML from /templates =================
+// On Vercel the working dir is /var/task, so templates are at /var/task/templates
+const serveHtmlFile = (res, filePath) => {
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
-            console.error('Missing template:', filePath, err.message);
-            return res.status(500).send('Template not found: ' + name);
+            console.error(`Error loading file: ${filePath}`, err);
+            return res.status(500).send('Error loading page');
         }
         res.setHeader('Content-Type', 'text/html');
         res.send(data);
     });
 };
 
-// ================= ROUTES =================
+// Helper to build correct template path regardless of environment
+const templatePath = (name) => path.join(__dirname, '../templates', name);
 
-app.get('/', (req, res) => serveHtml(res, 'login.html'));
-app.get('/login', (req, res) => serveHtml(res, 'login.html'));
+// ================= ROOT =================
+app.get('/', (req, res) => {
+    serveHtmlFile(res, templatePath('login.html'));
+});
 
-// Health check
-app.get('/api/health', (req, res) => res.json({ ok: true }));
+// ================= AUTH ROUTES =================
 
-// REGISTER
+// ✅ REGISTER
 app.post('/api/register', async (req, res) => {
     try {
         await connectDB();
@@ -88,93 +97,134 @@ app.post('/api/register', async (req, res) => {
         await User.create({ name, email, password: hashed, role: role || 'student' });
         res.json({ message: 'User created' });
     } catch (err) {
-        console.error('Register error:', err.message);
+        console.error('Register error:', err);
         res.status(400).json({ error: 'User already exists' });
     }
 });
 
-// LOGIN
+// ✅ LOGIN
 app.post('/api/login', async (req, res) => {
     try {
         await connectDB();
         const { email, password, role } = req.body;
         const user = await User.findOne({ email });
+
         if (!user) return res.status(401).json({ error: 'Invalid login' });
-        if (user.role.toLowerCase() !== role.toLowerCase())
-            return res.status(401).json({ error: 'Login as ' + user.role });
+
+        if (user.role.toLowerCase() !== role.toLowerCase()) {
+            return res.status(401).json({ error: `Login as ${user.role}` });
+        }
+
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.status(401).json({ error: 'Invalid login' });
-        const token = jwt.sign(
-            { _id: user._id, name: user.name, email: user.email, role: user.role },
-            JWT_SECRET,
-            { expiresIn: '7d' }
-        );
+
+        const token = jwt.sign(user.toObject(), JWT_SECRET);
         res.cookie('token', token, { httpOnly: true });
-        const redirect = user.role === 'teacher' ? '/teacher' : user.role === 'admin' ? '/admin' : '/student';
+
+        let redirect = '/student';
+        if (user.role === 'teacher') redirect = '/teacher';
+        else if (user.role === 'admin') redirect = '/admin';
+
         res.json({ message: 'Login success', role: user.role, redirect });
     } catch (err) {
-        console.error('Login error:', err.message);
+        console.error('Login error:', err);
         res.status(500).json({ error: 'Login failed' });
     }
 });
 
-// CURRENT USER
+// ================= GET CURRENT USER (used by templates to populate name/email) =================
 app.get('/api/me', authenticate, (req, res) => {
-    res.json({ name: req.user.name || '', email: req.user.email || '', role: req.user.role || '' });
+    res.json({
+        name: req.user.name || '',
+        email: req.user.email || '',
+        role: req.user.role || ''
+    });
 });
 
-// LOGOUT
+// ================= LOGOUT =================
 app.get('/logout', (req, res) => {
     res.clearCookie('token');
     res.redirect('/login');
 });
 
-// AI CHAT
+// ================= AI CHAT =================
 app.post('/api/chat', authenticate, async (req, res) => {
     try {
         const { system, messages } = req.body;
+
         const contents = messages.map(m => ({
             role: m.role === 'user' ? 'user' : 'model',
             parts: [{ text: m.content }]
         }));
+
         const response = await axios.post(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + GEMINI_API_KEY,
-            { system_instruction: { parts: [{ text: system || '' }] }, contents }
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                system_instruction: { parts: [{ text: system || '' }] },
+                contents
+            }
         );
-        res.json({ text: response.data.candidates[0].content.parts[0].text });
+
+        const text = response.data.candidates[0].content.parts[0].text;
+        res.json({ text });
     } catch (err) {
         console.error('Chat error:', err?.response?.data || err.message);
         res.status(500).json({ error: 'AI error' });
     }
 });
 
-// PAGE ROUTES
-app.get('/student', authenticate, (req, res) => serveHtml(res, 'student_dashboard.html'));
-app.get('/teacher', authenticate, (req, res) => serveHtml(res, 'teacher_dashboard.html'));
-app.get('/admin', authenticate, (req, res) => serveHtml(res, 'admin_dashboard.html'));
-app.get('/mycourses', authenticate, (req, res) => serveHtml(res, 'mycourses.html'));
-app.get('/mycourseteacher', authenticate, (req, res) => serveHtml(res, 'mycourseteacher.html'));
-app.get('/mystudents', authenticate, (req, res) => serveHtml(res, 'mystudents.html'));
-app.get('/learning-path', authenticate, (req, res) => serveHtml(res, 'learning_path.html'));
-app.get('/learning-dna', authenticate, (req, res) => serveHtml(res, 'learning_dna.html'));
-app.get('/ai-tutor', authenticate, (req, res) => serveHtml(res, 'ai_tutor.html'));
-app.get('/gamification', authenticate, (req, res) => serveHtml(res, 'gamification.html'));
-app.get('/analytics', authenticate, (req, res) => serveHtml(res, 'analytics.html'));
-app.get('/failure-prediction', authenticate, (req, res) => serveHtml(res, 'failure_prediction.html'));
-app.get('/settings', authenticate, (req, res) => serveHtml(res, 'settings.html'));
+// ================= PAGE ROUTES =================
+
+app.get('/login', (req, res) => serveHtmlFile(res, templatePath('login.html')));
+
+app.get('/student', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('student_dashboard.html')));
+
+app.get('/teacher', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('teacher_dashboard.html')));
+
+app.get('/admin', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('admin_dashboard.html')));
+
+app.get('/mycourses', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('mycourses.html')));
+
+app.get('/mycourseteacher', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('mycourseteacher.html')));
+
+app.get('/mystudents', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('mystudents.html')));
+
+app.get('/learning-path', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('learning_path.html')));
+
+app.get('/learning-dna', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('learning_dna.html')));
+
+app.get('/ai-tutor', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('ai_tutor.html')));
+
+app.get('/gamification', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('gamification.html')));
+
+app.get('/analytics', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('analytics.html')));
+
+app.get('/failure-prediction', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('failure_prediction.html')));
+
+app.get('/settings', authenticate, (req, res) =>
+    serveHtmlFile(res, templatePath('settings.html')));
 
 // ================= EXPORT =================
-// No serverless-http wrapper - Vercel handles Express apps natively
-module.exports = app;
+module.exports = serverless(app);
 
-// Local dev
-if (require.main === module) {
-    require('dotenv').config();
+// Local dev only
+if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 3000;
     connectDB().then(() => {
-        app.listen(PORT, () => console.log('Server running on http://localhost:' + PORT));
-    }).catch(err => {
-        console.error('DB connection failed:', err.message);
-        process.exit(1);
+        app.listen(PORT, () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+        });
     });
 }
