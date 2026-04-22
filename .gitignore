@@ -1,9 +1,6 @@
 node_modules/
-database.sqlite
 .env
 venv/
-__pycache__/
+database.sqlite
 *.pyc
-.DS_Store
-update_html.js
-update_user_info.js
+__pycache__/
