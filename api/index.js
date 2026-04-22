@@ -166,3 +166,15 @@ app.get('/settings', authenticate, (req, res) => serveHtml(res, 'settings.html')
 // ================= EXPORT =================
 // No serverless-http wrapper - Vercel handles Express apps natively
 module.exports = app;
+
+// Local dev
+if (require.main === module) {
+    require('dotenv').config();
+    const PORT = process.env.PORT || 3000;
+    connectDB().then(() => {
+        app.listen(PORT, () => console.log('Server running on http://localhost:' + PORT));
+    }).catch(err => {
+        console.error('DB connection failed:', err.message);
+        process.exit(1);
+    });
+}
