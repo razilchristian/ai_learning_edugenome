@@ -132,6 +132,15 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// ================= GET CURRENT USER (used by templates to populate name/email) =================
+app.get('/api/me', authenticate, (req, res) => {
+    res.json({
+        name: req.user.name || '',
+        email: req.user.email || '',
+        role: req.user.role || ''
+    });
+});
+
 // ================= LOGOUT =================
 app.get('/logout', (req, res) => {
     res.clearCookie('token');

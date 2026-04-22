@@ -1,135 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EduGenome - Student Dashboard</title>
-<link rel="stylesheet" href="/static/css/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGenome - Student Dashboard</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
-<div class="app-layout">
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
-    </div>
-    <nav class="sidebar-nav">
-      <a href="/student"><button class="nav-btn active"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
-      <a href="/mycourses"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
-      <a href="/learning-path"><button class="nav-btn"><i data-lucide="target" style="width:16px;height:16px"></i>AI Learning Path</button></a>
-      <a href="/learning-dna"><button class="nav-btn"><i data-lucide="brain" style="width:16px;height:16px"></i>Learning DNA</button></a>
-      <a href="/ai-tutor"><button class="nav-btn"><i data-lucide="message-square" style="width:16px;height:16px"></i>AI Tutor</button></a>
-      <a href="/gamification"><button class="nav-btn"><i data-lucide="trophy" style="width:16px;height:16px"></i>Leaderboard</button></a>
-      <a href="/settings"><button class="nav-btn"><i data-lucide="settings" style="width:16px;height:16px"></i>Settings</button></a>
-    </nav>
-    <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
-  </aside>
-
-  <main class="main-content">
-    <header class="top-header">
-      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
-      <div class="input-wrap" style="max-width:400px;flex:1">
-        <i data-lucide="search" class="input-icon" style="width:16px;height:16px"></i>
-        <input class="input" placeholder="Search courses, topics...">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span
+            class="logo-text">EduGenome</span></a>
       </div>
-      <div class="header-actions">
-        <button class="btn-icon relative"><i data-lucide="bell" style="width:20px;height:20px"></i><span class="notif-dot"></span></button>
-        <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Avatar"></div>
-      </div>
-    </header>
+      <nav class="sidebar-nav">
+        <a href="/student"><button class="nav-btn active"><i data-lucide="layout-dashboard"
+              style="width:16px;height:16px"></i>Dashboard</button></a>
+        <a href="/mycourses"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>My
+            Courses</button></a>
+        <a href="/learning-path"><button class="nav-btn"><i data-lucide="target" style="width:16px;height:16px"></i>AI
+            Learning Path</button></a>
+        <a href="/learning-dna"><button class="nav-btn"><i data-lucide="brain"
+              style="width:16px;height:16px"></i>Learning DNA</button></a>
+        <a href="/ai-tutor"><button class="nav-btn"><i data-lucide="message-square"
+              style="width:16px;height:16px"></i>AI Tutor</button></a>
+        <a href="/gamification"><button class="nav-btn"><i data-lucide="trophy"
+              style="width:16px;height:16px"></i>Leaderboard</button></a>
+        <a href="/settings"><button class="nav-btn"><i data-lucide="settings"
+              style="width:16px;height:16px"></i>Settings</button></a>
+      </nav>
+      <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+    </aside>
 
-    <div class="page-content">
-      <div>
-        <h1 class="font-bold" style="font-size:28px;color:#1e1b4b">Welcome back, <%= user.name %>! 👋</h1>
-        <p class="text-slate-600 mt-1">Here's your learning progress today</p>
-      </div>
+    <main class="main-content">
+      <header class="top-header">
+        <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i
+            data-lucide="menu" style="width:24px;height:24px"></i></button>
+        <div class="input-wrap" style="max-width:400px;flex:1">
+          <i data-lucide="search" class="input-icon" style="width:16px;height:16px"></i>
+          <input class="input" placeholder="Search courses, topics...">
+        </div>
+        <div class="header-actions">
+          <button class="btn-icon relative"><i data-lucide="bell" style="width:20px;height:20px"></i><span
+              class="notif-dot"></span></button>
+          <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Avatar"></div>
+        </div>
+      </header>
 
-      <div class="metric-cards">
-        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">Study Streak</p><p class="font-bold" style="font-size:28px">35 Days</p><p class="text-xs text-green mt-1">🔥 Keep it up!</p></div><i data-lucide="flame" style="width:40px;height:40px;color:var(--primary)"></i></div></div></div>
-        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">XP Points</p><p class="font-bold" style="font-size:28px">6,850</p><p class="text-xs text-green mt-1">↑ 320 this week</p></div><i data-lucide="zap" style="width:40px;height:40px;color:var(--accent)"></i></div></div></div>
-        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">Courses Active</p><p class="font-bold" style="font-size:28px">4</p><p class="text-xs text-green mt-1">1 completed this month</p></div><i data-lucide="book-open" style="width:40px;height:40px;color:#16a34a"></i></div></div></div>
-        <div class="card"><div class="card-content" style="padding:20px"><div class="flex items-center justify-between"><div><p class="text-sm text-muted mb-1">Global Rank</p><p class="font-bold" style="font-size:28px">#4</p><p class="text-xs text-green mt-1">Top 5% of all learners</p></div><i data-lucide="medal" style="width:40px;height:40px;color:#f59e0b"></i></div></div></div>
-      </div>
+      <div class="page-content">
+        <div>
+          <h1 class="font-bold" style="font-size:28px;color:#1e1b4b">Welcome back, <span data-user-name>Student</span>!
+            👋</h1>
+          <p class="text-slate-600 mt-1">Here's your learning progress today</p>
+        </div>
 
-      <div class="grid-2col" style="grid-template-columns:2fr 1fr">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i data-lucide="trending-up" style="width:20px;height:20px;color:var(--primary)"></i>Learning Progress</div>
-            <div class="card-desc">Your overall course completion</div>
+        <div class="metric-cards">
+          <div class="card">
+            <div class="card-content" style="padding:20px">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-muted mb-1">Study Streak</p>
+                  <p class="font-bold" style="font-size:28px">35 Days</p>
+                  <p class="text-xs text-green mt-1">🔥 Keep it up!</p>
+                </div><i data-lucide="flame" style="width:40px;height:40px;color:var(--primary)"></i>
+              </div>
+            </div>
           </div>
-          <div class="card-content space-y-4">
-            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium">Introduction to Python</span><span class="text-sm text-muted">85%</span></div><div class="progress"><div class="progress-bar" style="width:85%"></div></div></div>
-            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium">Data Structures</span><span class="text-sm text-muted">65%</span></div><div class="progress"><div class="progress-bar" style="width:65%"></div></div></div>
-            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium">Web Development</span><span class="text-sm text-muted">45%</span></div><div class="progress"><div class="progress-bar" style="width:45%"></div></div></div>
-            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium">Machine Learning Basics</span><span class="text-sm text-muted">30%</span></div><div class="progress"><div class="progress-bar" style="width:30%"></div></div></div>
+          <div class="card">
+            <div class="card-content" style="padding:20px">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-muted mb-1">XP Points</p>
+                  <p class="font-bold" style="font-size:28px">6,850</p>
+                  <p class="text-xs text-green mt-1">↑ 320 this week</p>
+                </div><i data-lucide="zap" style="width:40px;height:40px;color:var(--accent)"></i>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-content" style="padding:20px">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-muted mb-1">Courses Active</p>
+                  <p class="font-bold" style="font-size:28px">4</p>
+                  <p class="text-xs text-green mt-1">1 completed this month</p>
+                </div><i data-lucide="book-open" style="width:40px;height:40px;color:#16a34a"></i>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-content" style="padding:20px">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-muted mb-1">Global Rank</p>
+                  <p class="font-bold" style="font-size:28px">#4</p>
+                  <p class="text-xs text-green mt-1">Top 5% of all learners</p>
+                </div><i data-lucide="medal" style="width:40px;height:40px;color:#f59e0b"></i>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i data-lucide="brain" style="width:20px;height:20px;color:var(--accent)"></i>Learning DNA</div>
-            <div class="card-desc">Your personalized profile</div>
+
+        <div class="grid-2col" style="grid-template-columns:2fr 1fr">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="trending-up"
+                  style="width:20px;height:20px;color:var(--primary)"></i>Learning Progress</div>
+              <div class="card-desc">Your overall course completion</div>
+            </div>
+            <div class="card-content space-y-4">
+              <div>
+                <div class="flex justify-between mb-1"><span class="text-sm font-medium">Introduction to
+                    Python</span><span class="text-sm text-muted">85%</span></div>
+                <div class="progress">
+                  <div class="progress-bar" style="width:85%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1"><span class="text-sm font-medium">Data Structures</span><span
+                    class="text-sm text-muted">65%</span></div>
+                <div class="progress">
+                  <div class="progress-bar" style="width:65%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1"><span class="text-sm font-medium">Web Development</span><span
+                    class="text-sm text-muted">45%</span></div>
+                <div class="progress">
+                  <div class="progress-bar" style="width:45%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1"><span class="text-sm font-medium">Machine Learning
+                    Basics</span><span class="text-sm text-muted">30%</span></div>
+                <div class="progress">
+                  <div class="progress-bar" style="width:30%"></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="card-content space-y-3">
-            <div class="flex items-center justify-between"><span class="text-sm">Visual Learner</span><span class="badge badge-primary">85%</span></div>
-            <div class="flex items-center justify-between"><span class="text-sm">Practice-Based</span><span class="badge badge-accent">75%</span></div>
-            <div class="flex items-center justify-between"><span class="text-sm">Auditory</span><span class="badge badge-secondary">70%</span></div>
-            <div class="flex items-center justify-between"><span class="text-sm">Reading</span><span class="badge badge-secondary">60%</span></div>
-            <a href="/learning-dna"><button class="btn btn-outline btn-full mt-3">View Full Profile</button></a>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="brain"
+                  style="width:20px;height:20px;color:var(--accent)"></i>Learning DNA</div>
+              <div class="card-desc">Your personalized profile</div>
+            </div>
+            <div class="card-content space-y-3">
+              <div class="flex items-center justify-between"><span class="text-sm">Visual Learner</span><span
+                  class="badge badge-primary">85%</span></div>
+              <div class="flex items-center justify-between"><span class="text-sm">Practice-Based</span><span
+                  class="badge badge-accent">75%</span></div>
+              <div class="flex items-center justify-between"><span class="text-sm">Auditory</span><span
+                  class="badge badge-secondary">70%</span></div>
+              <div class="flex items-center justify-between"><span class="text-sm">Reading</span><span
+                  class="badge badge-secondary">60%</span></div>
+              <a href="/learning-dna"><button class="btn btn-outline btn-full mt-3">View Full Profile</button></a>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="grid-2col">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i data-lucide="bar-chart-3" style="width:20px;height:20px;color:var(--primary)"></i>Weekly Study Hours</div>
-            <div class="card-desc">Your daily study activity</div>
+        <div class="grid-2col">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="bar-chart-3"
+                  style="width:20px;height:20px;color:var(--primary)"></i>Weekly Study Hours</div>
+              <div class="card-desc">Your daily study activity</div>
+            </div>
+            <div class="card-content"><canvas id="weeklyChart" height="200"></canvas></div>
           </div>
-          <div class="card-content"><canvas id="weeklyChart" height="200"></canvas></div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="sparkles"
+                  style="width:20px;height:20px;color:var(--accent)"></i>AI Recommendations</div>
+              <div class="card-desc">Personalized for you today</div>
+            </div>
+            <div class="card-content space-y-3">
+              <div class="p-3 rounded" style="background:rgba(37,99,235,0.05);border:1px solid rgba(37,99,235,0.2)">
+                <p class="text-sm font-semibold mb-1">📚 Continue Python Functions</p>
+                <p class="text-xs text-muted">35 min remaining • Best time to study: now</p>
+              </div>
+              <div class="p-3 rounded" style="background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.2)">
+                <p class="text-sm font-semibold mb-1">🧩 Practice Data Structures Quiz</p>
+                <p class="text-xs text-muted">Boost your score from 65% to 80%</p>
+              </div>
+              <div class="p-3 rounded" style="background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.2)">
+                <p class="text-sm font-semibold mb-1">🏆 Challenge: Weekend Warrior</p>
+                <p class="text-xs text-muted">60% complete • 2 days left • 500 XP</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i data-lucide="sparkles" style="width:20px;height:20px;color:var(--accent)"></i>AI Recommendations</div>
-            <div class="card-desc">Personalized for you today</div>
-          </div>
-          <div class="card-content space-y-3">
-            <div class="p-3 rounded" style="background:rgba(37,99,235,0.05);border:1px solid rgba(37,99,235,0.2)"><p class="text-sm font-semibold mb-1">📚 Continue Python Functions</p><p class="text-xs text-muted">35 min remaining • Best time to study: now</p></div>
-            <div class="p-3 rounded" style="background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.2)"><p class="text-sm font-semibold mb-1">🧩 Practice Data Structures Quiz</p><p class="text-xs text-muted">Boost your score from 65% to 80%</p></div>
-            <div class="p-3 rounded" style="background:rgba(22,163,74,0.05);border:1px solid rgba(22,163,74,0.2)"><p class="text-sm font-semibold mb-1">🏆 Challenge: Weekend Warrior</p><p class="text-xs text-muted">60% complete • 2 days left • 500 XP</p></div>
-          </div>
+
+        <div class="grid-4col">
+          <a href="/ai-tutor"><button class="btn btn-primary btn-flex-col btn-full"><i data-lucide="message-square"
+                style="width:24px;height:24px"></i>AI Tutor</button></a>
+          <a href="/learning-path"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="target"
+                style="width:24px;height:24px"></i>Learning Path</button></a>
+          <a href="/gamification"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="trophy"
+                style="width:24px;height:24px"></i>Leaderboard</button></a>
+          <a href="/learning-dna"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="brain"
+                style="width:24px;height:24px"></i>Learning DNA</button></a>
         </div>
       </div>
+    </main>
+  </div>
+  <script>
+    lucide.createIcons();
+    new Chart(document.getElementById('weeklyChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{ label: 'Hours', data: [3, 4, 2, 5, 3, 6, 4], backgroundColor: '#7C3AED', borderRadius: 6 }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } } }
+    });
+  </script>
 
-      <div class="grid-4col">
-        <a href="/ai-tutor"><button class="btn btn-primary btn-flex-col btn-full"><i data-lucide="message-square" style="width:24px;height:24px"></i>AI Tutor</button></a>
-        <a href="/learning-path"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="target" style="width:24px;height:24px"></i>Learning Path</button></a>
-        <a href="/gamification"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="trophy" style="width:24px;height:24px"></i>Leaderboard</button></a>
-        <a href="/learning-dna"><button class="btn btn-outline btn-flex-col btn-full"><i data-lucide="brain" style="width:24px;height:24px"></i>Learning DNA</button></a>
-      </div>
-    </div>
-  </main>
-</div>
-<script>
-lucide.createIcons();
-new Chart(document.getElementById('weeklyChart'), {
-  type: 'bar',
-  data: {
-    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-    datasets: [{ label: 'Hours', data: [3,4,2,5,3,6,4], backgroundColor: '#7C3AED', borderRadius: 6 }]
-  },
-  options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } } }
-});
-</script>
-
-<script>
-  document.addEventListener('click', (e) => {
-    const sidebar = document.querySelector('.sidebar');
-    const menuBtn = document.querySelector('.mobile-menu-btn');
-    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-      sidebar.classList.remove('open');
-    }
-  });
-</script>
+  <script>
+    document.addEventListener('click', (e) => {
+      const sidebar = document.querySelector('.sidebar');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+  <script>
+    fetch("/api/me").then(r => r.json()).then(u => {
+      document.querySelectorAll("#user-name").forEach(el => el.textContent = u.name);
+    }).catch(() => { });
+  </script>
+  <script>
+    fetch('/api/me').then(r => r.json()).then(u => {
+      document.querySelectorAll('[data-user-name]').forEach(el => el.textContent = u.name);
+      document.querySelectorAll('[data-user-email]').forEach(el => el.value = u.email);
+      document.querySelectorAll('[data-user-firstname]').forEach(el => el.value = (u.name || '').split(' ')[0]);
+      document.querySelectorAll('[data-user-lastname]').forEach(el => el.value = (u.name || '').split(' ').slice(1).join(' '));
+      document.querySelectorAll('[data-user-role]').forEach(el => el.textContent = u.role.charAt(0).toUpperCase() + u.role.slice(1));
+    }).catch(() => { });
+  </script>
 </body>
+
 </html>

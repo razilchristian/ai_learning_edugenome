@@ -1,184 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EduGenome - Gamification</title>
-<link rel="stylesheet" href="/static/css/style.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGenome - Gamification</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body>
-<div class="app-layout">
-  <aside class="sidebar">
-    <div class="sidebar-logo"><a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a></div>
-    <nav class="sidebar-nav">
-      <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
-      <a href="/mycourses"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
-      <a href="/learning-path"><button class="nav-btn"><i data-lucide="target" style="width:16px;height:16px"></i>AI Learning Path</button></a>
-      <a href="/learning-dna"><button class="nav-btn"><i data-lucide="brain" style="width:16px;height:16px"></i>Learning DNA</button></a>
-      <a href="/ai-tutor"><button class="nav-btn"><i data-lucide="message-square" style="width:16px;height:16px"></i>AI Tutor</button></a>
-      <a href="/gamification"><button class="nav-btn active"><i data-lucide="trophy" style="width:16px;height:16px"></i>Leaderboard</button></a>
-      <a href="/settings"><button class="nav-btn"><i data-lucide="settings" style="width:16px;height:16px"></i>Settings</button></a>
-    </nav>
-    <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
-  </aside>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo"><a href="/"><i data-lucide="brain"
+            style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a></div>
+      <nav class="sidebar-nav">
+        <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard"
+              style="width:16px;height:16px"></i>Dashboard</button></a>
+        <a href="/mycourses"><button class="nav-btn"><i data-lucide="book-open" style="width:16px;height:16px"></i>My
+            Courses</button></a>
+        <a href="/learning-path"><button class="nav-btn"><i data-lucide="target" style="width:16px;height:16px"></i>AI
+            Learning Path</button></a>
+        <a href="/learning-dna"><button class="nav-btn"><i data-lucide="brain"
+              style="width:16px;height:16px"></i>Learning DNA</button></a>
+        <a href="/ai-tutor"><button class="nav-btn"><i data-lucide="message-square"
+              style="width:16px;height:16px"></i>AI Tutor</button></a>
+        <a href="/gamification"><button class="nav-btn active"><i data-lucide="trophy"
+              style="width:16px;height:16px"></i>Leaderboard</button></a>
+        <a href="/settings"><button class="nav-btn"><i data-lucide="settings"
+              style="width:16px;height:16px"></i>Settings</button></a>
+      </nav>
+      <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+    </aside>
 
-  <main class="main-content">
-    <header class="top-header">
-      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
-      <div>
-        <h2 class="font-bold" style="font-size:20px">Gamification & Rewards</h2>
-        <p class="text-sm text-muted">Track your achievements and compete with others</p>
-      </div>
-      <div class="header-actions">
-        <button class="btn-icon"><i data-lucide="bell" style="width:20px;height:20px"></i></button>
-        <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Avatar"></div>
-      </div>
-    </header>
+    <main class="main-content">
+      <header class="top-header">
+        <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i
+            data-lucide="menu" style="width:24px;height:24px"></i></button>
+        <div>
+          <h2 class="font-bold" style="font-size:20px">Gamification & Rewards</h2>
+          <p class="text-sm text-muted">Track your achievements and compete with others</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-icon"><i data-lucide="bell" style="width:20px;height:20px"></i></button>
+          <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Avatar"></div>
+        </div>
+      </header>
 
-    <div class="page-content">
-      <!-- XP Cards -->
-      <div class="grid-3col">
-        <div class="card" style="background:linear-gradient(135deg,#fbbf24,#f97316);color:#fff">
-          <div class="card-content" style="padding:24px">
-            <div class="flex items-center justify-between mb-4">
-              <div><p class="text-sm opacity-90">Total XP</p><p class="font-bold" style="font-size:36px">6,850</p></div>
-              <i data-lucide="trophy" style="width:64px;height:64px;opacity:0.8"></i>
+      <div class="page-content">
+        <!-- XP Cards -->
+        <div class="grid-3col">
+          <div class="card" style="background:linear-gradient(135deg,#fbbf24,#f97316);color:#fff">
+            <div class="card-content" style="padding:24px">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <p class="text-sm opacity-90">Total XP</p>
+                  <p class="font-bold" style="font-size:36px">6,850</p>
+                </div>
+                <i data-lucide="trophy" style="width:64px;height:64px;opacity:0.8"></i>
+              </div>
+              <div class="space-y-2">
+                <div class="flex justify-between text-sm"><span>Level 12</span><span>Level 13</span></div>
+                <div style="background:rgba(255,255,255,0.3);border-radius:9999px;height:8px">
+                  <div style="width:68%;height:100%;background:#fff;border-radius:9999px"></div>
+                </div>
+                <p class="text-xs opacity-90">320 XP to next level</p>
+              </div>
             </div>
-            <div class="space-y-2">
-              <div class="flex justify-between text-sm"><span>Level 12</span><span>Level 13</span></div>
-              <div style="background:rgba(255,255,255,0.3);border-radius:9999px;height:8px"><div style="width:68%;height:100%;background:#fff;border-radius:9999px"></div></div>
-              <p class="text-xs opacity-90">320 XP to next level</p>
+          </div>
+          <div class="card" style="background:linear-gradient(135deg,#ef4444,#ea580c);color:#fff">
+            <div class="card-content" style="padding:24px">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <p class="text-sm opacity-90">Current Streak</p>
+                  <p class="font-bold" style="font-size:36px">35 Days</p>
+                </div>
+                <i data-lucide="flame" style="width:64px;height:64px;opacity:0.8"></i>
+              </div>
+              <p class="text-sm opacity-90 mt-4">Keep it up! Study today to maintain your streak 🔥</p>
+            </div>
+          </div>
+          <div class="card" style="background:linear-gradient(135deg,#8b5cf6,#db2777);color:#fff">
+            <div class="card-content" style="padding:24px">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <p class="text-sm opacity-90">Global Rank</p>
+                  <p class="font-bold" style="font-size:36px">#4</p>
+                </div>
+                <i data-lucide="medal" style="width:64px;height:64px;opacity:0.8"></i>
+              </div>
+              <p class="text-sm opacity-90 mt-4">Top 5% of all learners! Amazing! 🎉</p>
             </div>
           </div>
         </div>
-        <div class="card" style="background:linear-gradient(135deg,#ef4444,#ea580c);color:#fff">
-          <div class="card-content" style="padding:24px">
-            <div class="flex items-center justify-between mb-2">
-              <div><p class="text-sm opacity-90">Current Streak</p><p class="font-bold" style="font-size:36px">35 Days</p></div>
-              <i data-lucide="flame" style="width:64px;height:64px;opacity:0.8"></i>
-            </div>
-            <p class="text-sm opacity-90 mt-4">Keep it up! Study today to maintain your streak 🔥</p>
-          </div>
-        </div>
-        <div class="card" style="background:linear-gradient(135deg,#8b5cf6,#db2777);color:#fff">
-          <div class="card-content" style="padding:24px">
-            <div class="flex items-center justify-between mb-2">
-              <div><p class="text-sm opacity-90">Global Rank</p><p class="font-bold" style="font-size:36px">#4</p></div>
-              <i data-lucide="medal" style="width:64px;height:64px;opacity:0.8"></i>
-            </div>
-            <p class="text-sm opacity-90 mt-4">Top 5% of all learners! Amazing! 🎉</p>
-          </div>
-        </div>
-      </div>
 
-      <!-- Badges & Leaderboard -->
-      <div class="grid-2col">
-        <!-- Badges -->
+        <!-- Badges & Leaderboard -->
+        <div class="grid-2col">
+          <!-- Badges -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="award"
+                  style="width:20px;height:20px;color:#ca8a04"></i>Achievement Badges</div>
+              <div class="card-desc">Unlock badges by completing challenges</div>
+            </div>
+            <div class="card-content">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="badge-card unlocked">
+                  <div class="badge-emoji">🔢</div>
+                  <h4 class="font-semibold text-sm mb-1">Math Master</h4>
+                  <p class="text-xs text-muted mb-2">Complete 50 math problems</p><span
+                    class="badge badge-yellow">Unlocked!</span>
+                </div>
+                <div class="badge-card unlocked">
+                  <div class="badge-emoji">🔥</div>
+                  <h4 class="font-semibold text-sm mb-1">Consistency Champion</h4>
+                  <p class="text-xs text-muted mb-2">Maintain 30-day streak</p><span
+                    class="badge badge-yellow">Unlocked!</span>
+                </div>
+                <div class="badge-card unlocked">
+                  <div class="badge-emoji">⚡</div>
+                  <h4 class="font-semibold text-sm mb-1">Quick Learner</h4>
+                  <p class="text-xs text-muted mb-2">Complete 5 courses in a month</p><span
+                    class="badge badge-yellow">Unlocked!</span>
+                </div>
+                <div class="badge-card locked">
+                  <div class="badge-emoji">🧩</div>
+                  <h4 class="font-semibold text-sm mb-1">Problem Solver</h4>
+                  <p class="text-xs text-muted mb-2">Solve 100 coding challenges</p>
+                  <div class="progress progress-sm mt-2">
+                    <div class="progress-bar" style="width:75%"></div>
+                  </div>
+                  <p class="text-xs text-muted mt-1">75% complete</p>
+                </div>
+                <div class="badge-card locked">
+                  <div class="badge-emoji">🦉</div>
+                  <h4 class="font-semibold text-sm mb-1">Night Owl</h4>
+                  <p class="text-xs text-muted mb-2">Study 10 nights after 10 PM</p>
+                  <div class="progress progress-sm mt-2">
+                    <div class="progress-bar" style="width:60%"></div>
+                  </div>
+                  <p class="text-xs text-muted mt-1">60% complete</p>
+                </div>
+                <div class="badge-card locked">
+                  <div class="badge-emoji">💯</div>
+                  <h4 class="font-semibold text-sm mb-1">Perfect Score</h4>
+                  <p class="text-xs text-muted mb-2">Get 100% on 10 quizzes</p>
+                  <div class="progress progress-sm mt-2">
+                    <div class="progress-bar" style="width:80%"></div>
+                  </div>
+                  <p class="text-xs text-muted mt-1">80% complete</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leaderboard -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title"><i data-lucide="trophy"
+                  style="width:20px;height:20px;color:var(--primary)"></i>Global Leaderboard</div>
+              <div class="card-desc">Top learners this month</div>
+            </div>
+            <div class="card-content space-y-2">
+              <div class="flex items-center gap-3 p-3 rounded" style="background:#f8fafc">
+                <div style="width:32px;text-align:center"><i data-lucide="crown"
+                    style="width:24px;height:24px;color:#eab308"></i></div>
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sarah" alt=""></div>
+                <div class="flex-1">
+                  <p class="font-medium text-sm">Yash Varmora</p>
+                  <p class="text-xs text-muted">⚡ 8,450 XP &nbsp; 🔥 45 days</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded" style="background:#f8fafc">
+                <div style="width:32px;text-align:center;color:#94a3b8;font-weight:700">2</div>
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=mike" alt=""></div>
+                <div class="flex-1">
+                  <p class="font-medium text-sm">Mohammed Rehan Ansari</p>
+                  <p class="text-xs text-muted">⚡ 7,890 XP &nbsp; 🔥 38 days</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded" style="background:#f8fafc">
+                <div style="width:32px;text-align:center;color:#f97316;font-weight:700">3</div>
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=emma" alt=""></div>
+                <div class="flex-1">
+                  <p class="font-medium text-sm">Jainam Suthar</p>
+                  <p class="text-xs text-muted">⚡ 7,320 XP &nbsp; 🔥 42 days</p>
+                </div>
+              </div>
+              <!-- Current user -->
+              <div class="flex items-center gap-3 p-3 rounded"
+                style="background:rgba(37,99,235,0.08);border:2px solid var(--primary)">
+                <div style="width:32px;text-align:center;color:#64748b;font-weight:700">4</div>
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt=""></div>
+                <div class="flex-1">
+                  <p class="font-medium text-sm"><span data-user-name>You</span> <span
+                      class="badge badge-primary ml-2">You</span></p>
+                  <p class="text-xs text-muted">⚡ 6,850 XP &nbsp; 🔥 35 days</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 p-3 rounded" style="background:#f8fafc">
+                <div style="width:32px;text-align:center;color:#64748b;font-weight:700">5</div>
+                <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=alex" alt=""></div>
+                <div class="flex-1">
+                  <p class="font-medium text-sm">Priya Baldha</p>
+                  <p class="text-xs text-muted">⚡ 6,200 XP &nbsp; 🔥 28 days</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Challenges -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title"><i data-lucide="award" style="width:20px;height:20px;color:#ca8a04"></i>Achievement Badges</div>
-            <div class="card-desc">Unlock badges by completing challenges</div>
+            <div class="card-title"><i data-lucide="target"
+                style="width:20px;height:20px;color:var(--accent)"></i>Weekly Challenges</div>
+            <div class="card-desc">Complete challenges to earn bonus XP</div>
           </div>
           <div class="card-content">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <div class="badge-card unlocked"><div class="badge-emoji">🔢</div><h4 class="font-semibold text-sm mb-1">Math Master</h4><p class="text-xs text-muted mb-2">Complete 50 math problems</p><span class="badge badge-yellow">Unlocked!</span></div>
-              <div class="badge-card unlocked"><div class="badge-emoji">🔥</div><h4 class="font-semibold text-sm mb-1">Consistency Champion</h4><p class="text-xs text-muted mb-2">Maintain 30-day streak</p><span class="badge badge-yellow">Unlocked!</span></div>
-              <div class="badge-card unlocked"><div class="badge-emoji">⚡</div><h4 class="font-semibold text-sm mb-1">Quick Learner</h4><p class="text-xs text-muted mb-2">Complete 5 courses in a month</p><span class="badge badge-yellow">Unlocked!</span></div>
-              <div class="badge-card locked"><div class="badge-emoji">🧩</div><h4 class="font-semibold text-sm mb-1">Problem Solver</h4><p class="text-xs text-muted mb-2">Solve 100 coding challenges</p><div class="progress progress-sm mt-2"><div class="progress-bar" style="width:75%"></div></div><p class="text-xs text-muted mt-1">75% complete</p></div>
-              <div class="badge-card locked"><div class="badge-emoji">🦉</div><h4 class="font-semibold text-sm mb-1">Night Owl</h4><p class="text-xs text-muted mb-2">Study 10 nights after 10 PM</p><div class="progress progress-sm mt-2"><div class="progress-bar" style="width:60%"></div></div><p class="text-xs text-muted mt-1">60% complete</p></div>
-              <div class="badge-card locked"><div class="badge-emoji">💯</div><h4 class="font-semibold text-sm mb-1">Perfect Score</h4><p class="text-xs text-muted mb-2">Get 100% on 10 quizzes</p><div class="progress progress-sm mt-2"><div class="progress-bar" style="width:80%"></div></div><p class="text-xs text-muted mt-1">80% complete</p></div>
+            <div class="grid-3col">
+              <div class="p-4 rounded"
+                style="background:linear-gradient(135deg,#eff6ff,#faf5ff);border:1px solid #bfdbfe">
+                <div class="flex justify-between items-start mb-3">
+                  <h4 class="font-semibold">Weekend Warrior</h4><span class="badge badge-accent">500 XP</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Complete 5 hours of study this weekend</p>
+                <div class="progress mb-1">
+                  <div class="progress-bar" style="width:60%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-muted"><span>60% complete</span><span>2 days left</span>
+                </div>
+              </div>
+              <div class="p-4 rounded"
+                style="background:linear-gradient(135deg,#eff6ff,#faf5ff);border:1px solid #bfdbfe">
+                <div class="flex justify-between items-start mb-3">
+                  <h4 class="font-semibold">Quiz Master</h4><span class="badge badge-accent">300 XP</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Score 90%+ on 3 quizzes</p>
+                <div class="progress mb-1">
+                  <div class="progress-bar" style="width:66%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-muted"><span>66% complete</span><span>5 days left</span>
+                </div>
+              </div>
+              <div class="p-4 rounded"
+                style="background:linear-gradient(135deg,#eff6ff,#faf5ff);border:1px solid #bfdbfe">
+                <div class="flex justify-between items-start mb-3">
+                  <h4 class="font-semibold">Code Marathon</h4><span class="badge badge-accent">750 XP</span>
+                </div>
+                <p class="text-sm text-slate-600 mb-4">Solve 20 coding problems</p>
+                <div class="progress mb-1">
+                  <div class="progress-bar" style="width:45%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-muted"><span>45% complete</span><span>1 week left</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Leaderboard -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i data-lucide="trophy" style="width:20px;height:20px;color:var(--primary)"></i>Global Leaderboard</div>
-            <div class="card-desc">Top learners this month</div>
-          </div>
-          <div class="card-content space-y-2">
-            <div class="flex items-center gap-3 p-3 rounded" style="background:#f8fafc">
-              <div style="width:32px;text-align:center"><i data-lucide="crown" style="width:24px;height:24px;color:#eab308"></i></div>
-              <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sarah" alt=""></div>
-              <div class="flex-1"><p class="font-medium text-sm">Yash Varmora</p><p class="text-xs text-muted">⚡ 8,450 XP &nbsp; 🔥 45 days</p></div>
-            </div>
-            <div class="flex items-center gap-3 p-3 rounded" style="background:#f8fafc">
-              <div style="width:32px;text-align:center;color:#94a3b8;font-weight:700">2</div>
-              <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=mike" alt=""></div>
-              <div class="flex-1"><p class="font-medium text-sm">Mohammed Rehan Ansari</p><p class="text-xs text-muted">⚡ 7,890 XP &nbsp; 🔥 38 days</p></div>
-            </div>
-            <div class="flex items-center gap-3 p-3 rounded" style="background:#f8fafc">
-              <div style="width:32px;text-align:center;color:#f97316;font-weight:700">3</div>
-              <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=emma" alt=""></div>
-              <div class="flex-1"><p class="font-medium text-sm">Jainam Suthar</p><p class="text-xs text-muted">⚡ 7,320 XP &nbsp; 🔥 42 days</p></div>
-            </div>
-            <!-- Current user -->
-            <div class="flex items-center gap-3 p-3 rounded" style="background:rgba(37,99,235,0.08);border:2px solid var(--primary)">
-              <div style="width:32px;text-align:center;color:#64748b;font-weight:700">4</div>
-              <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt=""></div>
-              <div class="flex-1"><p class="font-medium text-sm"><%= user.name %> <span class="badge badge-primary ml-2">You</span></p><p class="text-xs text-muted">⚡ 6,850 XP &nbsp; 🔥 35 days</p></div>
-            </div>
-            <div class="flex items-center gap-3 p-3 rounded" style="background:#f8fafc">
-              <div style="width:32px;text-align:center;color:#64748b;font-weight:700">5</div>
-              <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=alex" alt=""></div>
-              <div class="flex-1"><p class="font-medium text-sm">Priya Baldha</p><p class="text-xs text-muted">⚡ 6,200 XP &nbsp; 🔥 28 days</p></div>
+        <!-- Stats row -->
+        <div class="grid-4col">
+          <div class="card">
+            <div class="card-content text-center" style="padding:24px"><i data-lucide="star"
+                style="width:32px;height:32px;color:#eab308;margin:0 auto 8px;display:block"></i>
+              <p class="font-bold" style="font-size:24px">24</p>
+              <p class="text-sm text-muted">Badges Earned</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Weekly Challenges -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title"><i data-lucide="target" style="width:20px;height:20px;color:var(--accent)"></i>Weekly Challenges</div>
-          <div class="card-desc">Complete challenges to earn bonus XP</div>
-        </div>
-        <div class="card-content">
-          <div class="grid-3col">
-            <div class="p-4 rounded" style="background:linear-gradient(135deg,#eff6ff,#faf5ff);border:1px solid #bfdbfe">
-              <div class="flex justify-between items-start mb-3"><h4 class="font-semibold">Weekend Warrior</h4><span class="badge badge-accent">500 XP</span></div>
-              <p class="text-sm text-slate-600 mb-4">Complete 5 hours of study this weekend</p>
-              <div class="progress mb-1"><div class="progress-bar" style="width:60%"></div></div>
-              <div class="flex justify-between text-xs text-muted"><span>60% complete</span><span>2 days left</span></div>
+          <div class="card">
+            <div class="card-content text-center" style="padding:24px"><i data-lucide="trophy"
+                style="width:32px;height:32px;color:var(--primary);margin:0 auto 8px;display:block"></i>
+              <p class="font-bold" style="font-size:24px">12</p>
+              <p class="text-sm text-muted">Challenges Won</p>
             </div>
-            <div class="p-4 rounded" style="background:linear-gradient(135deg,#eff6ff,#faf5ff);border:1px solid #bfdbfe">
-              <div class="flex justify-between items-start mb-3"><h4 class="font-semibold">Quiz Master</h4><span class="badge badge-accent">300 XP</span></div>
-              <p class="text-sm text-slate-600 mb-4">Score 90%+ on 3 quizzes</p>
-              <div class="progress mb-1"><div class="progress-bar" style="width:66%"></div></div>
-              <div class="flex justify-between text-xs text-muted"><span>66% complete</span><span>5 days left</span></div>
+          </div>
+          <div class="card">
+            <div class="card-content text-center" style="padding:24px"><i data-lucide="zap"
+                style="width:32px;height:32px;color:var(--accent);margin:0 auto 8px;display:block"></i>
+              <p class="font-bold" style="font-size:24px">6,850</p>
+              <p class="text-sm text-muted">Total XP</p>
             </div>
-            <div class="p-4 rounded" style="background:linear-gradient(135deg,#eff6ff,#faf5ff);border:1px solid #bfdbfe">
-              <div class="flex justify-between items-start mb-3"><h4 class="font-semibold">Code Marathon</h4><span class="badge badge-accent">750 XP</span></div>
-              <p class="text-sm text-slate-600 mb-4">Solve 20 coding problems</p>
-              <div class="progress mb-1"><div class="progress-bar" style="width:45%"></div></div>
-              <div class="flex justify-between text-xs text-muted"><span>45% complete</span><span>1 week left</span></div>
+          </div>
+          <div class="card">
+            <div class="card-content text-center" style="padding:24px"><i data-lucide="medal"
+                style="width:32px;height:32px;color:#f97316;margin:0 auto 8px;display:block"></i>
+              <p class="font-bold" style="font-size:24px">Level 12</p>
+              <p class="text-sm text-muted">Current Level</p>
             </div>
           </div>
         </div>
       </div>
+    </main>
+  </div>
+  <script>lucide.createIcons();</script>
 
-      <!-- Stats row -->
-      <div class="grid-4col">
-        <div class="card"><div class="card-content text-center" style="padding:24px"><i data-lucide="star" style="width:32px;height:32px;color:#eab308;margin:0 auto 8px;display:block"></i><p class="font-bold" style="font-size:24px">24</p><p class="text-sm text-muted">Badges Earned</p></div></div>
-        <div class="card"><div class="card-content text-center" style="padding:24px"><i data-lucide="trophy" style="width:32px;height:32px;color:var(--primary);margin:0 auto 8px;display:block"></i><p class="font-bold" style="font-size:24px">12</p><p class="text-sm text-muted">Challenges Won</p></div></div>
-        <div class="card"><div class="card-content text-center" style="padding:24px"><i data-lucide="zap" style="width:32px;height:32px;color:var(--accent);margin:0 auto 8px;display:block"></i><p class="font-bold" style="font-size:24px">6,850</p><p class="text-sm text-muted">Total XP</p></div></div>
-        <div class="card"><div class="card-content text-center" style="padding:24px"><i data-lucide="medal" style="width:32px;height:32px;color:#f97316;margin:0 auto 8px;display:block"></i><p class="font-bold" style="font-size:24px">Level 12</p><p class="text-sm text-muted">Current Level</p></div></div>
-      </div>
-    </div>
-  </main>
-</div>
-<script>lucide.createIcons();</script>
-
-<script>
-  document.addEventListener('click', (e) => {
-    const sidebar = document.querySelector('.sidebar');
-    const menuBtn = document.querySelector('.mobile-menu-btn');
-    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-      sidebar.classList.remove('open');
-    }
-  });
-</script>
+  <script>
+    document.addEventListener('click', (e) => {
+      const sidebar = document.querySelector('.sidebar');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+  <script>
+    fetch('/api/me').then(r => r.json()).then(u => {
+      document.querySelectorAll('[data-user-name]').forEach(el => el.textContent = u.name);
+      document.querySelectorAll('[data-user-email]').forEach(el => el.value = u.email);
+      document.querySelectorAll('[data-user-firstname]').forEach(el => el.value = (u.name || '').split(' ')[0]);
+      document.querySelectorAll('[data-user-lastname]').forEach(el => el.value = (u.name || '').split(' ').slice(1).join(' '));
+      document.querySelectorAll('[data-user-role]').forEach(el => el.textContent = u.role.charAt(0).toUpperCase() + u.role.slice(1));
+    }).catch(() => { });
+  </script>
 </body>
+
 </html>
