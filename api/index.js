@@ -46,30 +46,36 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ================= STATIC FILES - FIXED FOR VERCEL =================
-const staticPath = path.join(__dirname, '..', 'static');
-console.log('Static files path:', staticPath);
+// ================= SERVE ALL STATIC FILES MANUALLY THROUGH EXPRESS =================
+app.get('/static/*', (req, res) => {
+    const filePath = path.join(__dirname, '..', req.url);
+    console.log('Attempting to serve:', filePath);
 
-// Serve static files with proper headers
-app.use('/static', express.static(staticPath, {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
-        }
+    if (fs.existsSync(filePath)) {
+        const ext = path.extname(filePath);
+        let contentType = 'text/plain';
+        if (ext === '.css') contentType = 'text/css';
+        if (ext === '.js') contentType = 'application/javascript';
+        if (ext === '.png') contentType = 'image/png';
+        if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+        if (ext === '.svg') contentType = 'image/svg+xml';
+
+        res.setHeader('Content-Type', contentType);
+        fs.createReadStream(filePath).pipe(res);
+    } else {
+        console.error('File not found:', filePath);
+        res.status(404).send('File not found');
     }
-}));
+});
 
-// Manual fallback for CSS file (in case express.static fails on Vercel)
+// Force serve CSS file specifically
 app.get('/static/css/style.css', (req, res) => {
     const cssPath = path.join(__dirname, '..', 'static', 'css', 'style.css');
+    console.log('Serving CSS from:', cssPath);
+
     if (fs.existsSync(cssPath)) {
         res.setHeader('Content-Type', 'text/css');
-        fs.readFile(cssPath, 'utf8', (err, data) => {
-            if (err) {
-                return res.status(500).send('Error loading CSS');
-            }
-            res.send(data);
-        });
+        fs.createReadStream(cssPath).pipe(res);
     } else {
         res.status(404).send('CSS not found');
     }
@@ -240,7 +246,7 @@ app.get('/failure-prediction', authenticate, (req, res) =>
 app.get('/settings', authenticate, (req, res) =>
     serveHtmlFile(res, 'settings.html'));
 
-// ================= DEBUG ROUTE (optional - remove after testing) =================
+// ================= DEBUG ROUTE =================
 app.get('/debug-static', (req, res) => {
     const staticPathCheck = path.join(__dirname, '..', 'static');
     const cssPathCheck = path.join(staticPathCheck, 'css', 'style.css');
