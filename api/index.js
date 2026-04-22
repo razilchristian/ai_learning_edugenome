@@ -46,8 +46,34 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Serve static files - path to root/static
-app.use('/static', express.static(path.join(__dirname, '..', 'static')));
+// ================= STATIC FILES - FIXED FOR VERCEL =================
+const staticPath = path.join(__dirname, '..', 'static');
+console.log('Static files path:', staticPath);
+
+// Serve static files with proper headers
+app.use('/static', express.static(staticPath, {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
+
+// Manual fallback for CSS file (in case express.static fails on Vercel)
+app.get('/static/css/style.css', (req, res) => {
+    const cssPath = path.join(__dirname, '..', 'static', 'css', 'style.css');
+    if (fs.existsSync(cssPath)) {
+        res.setHeader('Content-Type', 'text/css');
+        fs.readFile(cssPath, 'utf8', (err, data) => {
+            if (err) {
+                return res.status(500).send('Error loading CSS');
+            }
+            res.send(data);
+        });
+    } else {
+        res.status(404).send('CSS not found');
+    }
+});
 
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
@@ -65,7 +91,6 @@ const authenticate = (req, res, next) => {
 
 // ================= HELPER: Serve HTML from root/templates =================
 const serveHtmlFile = (res, fileName) => {
-    // Templates are at root/templates (one level up from api folder)
     const filePath = path.join(__dirname, '..', 'templates', fileName);
 
     fs.readFile(filePath, 'utf8', (err, data) => {
@@ -214,6 +239,19 @@ app.get('/failure-prediction', authenticate, (req, res) =>
 
 app.get('/settings', authenticate, (req, res) =>
     serveHtmlFile(res, 'settings.html'));
+
+// ================= DEBUG ROUTE (optional - remove after testing) =================
+app.get('/debug-static', (req, res) => {
+    const staticPathCheck = path.join(__dirname, '..', 'static');
+    const cssPathCheck = path.join(staticPathCheck, 'css', 'style.css');
+
+    res.json({
+        staticExists: fs.existsSync(staticPathCheck),
+        cssExists: fs.existsSync(cssPathCheck),
+        staticPath: staticPathCheck,
+        cssPath: cssPathCheck
+    });
+});
 
 // ================= EXPORT FOR VERCEL =================
 module.exports = app;
