@@ -8,7 +8,8 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const mongoose = require('mongoose');
 
-dotenv.config();
+// Load .env from root (one level up from api folder)
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 
@@ -17,7 +18,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 
-// ================= MONGODB CONNECTION (LAZY - fixes 504 timeout) =================
+// ================= MONGODB CONNECTION =================
 let isConnected = false;
 
 async function connectDB() {
@@ -45,8 +46,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Serve static files
-app.use('/static', express.static(path.join(__dirname, 'static')));
+// Serve static files - path to root/static
+app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
@@ -62,23 +63,24 @@ const authenticate = (req, res, next) => {
     }
 };
 
-// ================= HELPER: Serve HTML from /templates =================
-const serveHtmlFile = (res, filePath) => {
+// ================= HELPER: Serve HTML from root/templates =================
+const serveHtmlFile = (res, fileName) => {
+    // Templates are at root/templates (one level up from api folder)
+    const filePath = path.join(__dirname, '..', 'templates', fileName);
+
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
             console.error(`Error loading file: ${filePath}`, err);
-            return res.status(500).send('Error loading page');
+            return res.status(500).send(`Error loading page: ${fileName}`);
         }
         res.setHeader('Content-Type', 'text/html');
         res.send(data);
     });
 };
 
-const templatePath = (name) => path.join(__dirname, 'templates', name);
-
 // ================= ROOT =================
 app.get('/', (req, res) => {
-    serveHtmlFile(res, templatePath('login.html'));
+    serveHtmlFile(res, 'login.html');
 });
 
 // ================= AUTH ROUTES =================
@@ -172,49 +174,48 @@ app.post('/api/chat', authenticate, async (req, res) => {
 
 // ================= PAGE ROUTES =================
 
-app.get('/login', (req, res) => serveHtmlFile(res, templatePath('login.html')));
+app.get('/login', (req, res) => serveHtmlFile(res, 'login.html'));
 
 app.get('/student', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('student_dashboard.html')));
+    serveHtmlFile(res, 'student_dashboard.html'));
 
 app.get('/teacher', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('teacher_dashboard.html')));
+    serveHtmlFile(res, 'teacher_dashboard.html'));
 
 app.get('/admin', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('admin_dashboard.html')));
+    serveHtmlFile(res, 'admin_dashboard.html'));
 
 app.get('/mycourses', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('mycourses.html')));
+    serveHtmlFile(res, 'mycourses.html'));
 
 app.get('/mycourseteacher', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('mycourseteacher.html')));
+    serveHtmlFile(res, 'mycourseteacher.html'));
 
 app.get('/mystudents', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('mystudents.html')));
+    serveHtmlFile(res, 'mystudents.html'));
 
 app.get('/learning-path', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('learning_path.html')));
+    serveHtmlFile(res, 'learning_path.html'));
 
 app.get('/learning-dna', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('learning_dna.html')));
+    serveHtmlFile(res, 'learning_dna.html'));
 
 app.get('/ai-tutor', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('ai_tutor.html')));
+    serveHtmlFile(res, 'ai_tutor.html'));
 
 app.get('/gamification', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('gamification.html')));
+    serveHtmlFile(res, 'gamification.html'));
 
 app.get('/analytics', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('analytics.html')));
+    serveHtmlFile(res, 'analytics.html'));
 
 app.get('/failure-prediction', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('failure_prediction.html')));
+    serveHtmlFile(res, 'failure_prediction.html'));
 
 app.get('/settings', authenticate, (req, res) =>
-    serveHtmlFile(res, templatePath('settings.html')));
+    serveHtmlFile(res, 'settings.html'));
 
 // ================= EXPORT FOR VERCEL =================
-// No serverless-http needed - just export app directly
 module.exports = app;
 
 // Local dev only
