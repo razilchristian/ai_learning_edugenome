@@ -21,7 +21,7 @@ const MONGO_URI = process.env.MONGO_URI;
 // ================= MONGODB CONNECTION =================
 mongoose.connect(MONGO_URI)
     .then(() => console.log("MongoDB connected"))
-    .catch(err => console.log("MongoDB error:", err));
+    .catch(err => console.log(err));
 
 // ================= USER MODEL =================
 const UserSchema = new mongoose.Schema({
@@ -37,7 +37,7 @@ const User = mongoose.model('User', UserSchema);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use('/static', express.static(path.join(__dirname, '../static')));
 
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
@@ -47,20 +47,18 @@ const authenticate = (req, res, next) => {
     try {
         req.user = jwt.verify(token, JWT_SECRET);
         next();
-    } catch (err) {
+    } catch {
         res.clearCookie('token');
         res.redirect('/login');
     }
 };
 
-// ================= HELPER FUNCTION =================
-const sendHtmlFile = (res, fileName) => {
-    const filePath = path.join(__dirname, 'templates', fileName);
-
+// ================= HELPER FUNCTION FOR SAFE FILE SERVING =================
+const serveHtmlFile = (res, filePath) => {
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
-            console.error(`Error loading ${fileName}:`, err);
-            return res.status(500).send(`Error loading ${fileName}`);
+            console.error(`Error loading file: ${filePath}`, err);
+            return res.status(500).send("Error loading page");
         }
         res.setHeader('Content-Type', 'text/html');
         res.send(data);
@@ -69,12 +67,13 @@ const sendHtmlFile = (res, fileName) => {
 
 // ================= ROOT =================
 app.get('/', (req, res) => {
-    sendHtmlFile(res, 'landing.html');
+    const filePath = path.join(__dirname, '../templates/login.html');
+    serveHtmlFile(res, filePath);
 });
 
 // ================= API =================
 
-// REGISTER
+// ✅ REGISTER with MongoDB
 app.post('/api/register', async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
@@ -95,7 +94,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// LOGIN
+// ✅ LOGIN with MongoDB
 app.post('/api/login', async (req, res) => {
     const { email, password, role } = req.body;
 
@@ -113,7 +112,7 @@ app.post('/api/login', async (req, res) => {
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.status(401).json({ error: 'Invalid login' });
 
-        const token = jwt.sign({ id: user._id, email: user.email, name: user.name, role: user.role }, JWT_SECRET);
+        const token = jwt.sign(user.toObject(), JWT_SECRET);
         res.cookie('token', token, { httpOnly: true });
 
         let redirect = '/student';
@@ -129,12 +128,6 @@ app.post('/api/login', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: 'Login failed' });
     }
-});
-
-// LOGOUT
-app.get('/logout', (req, res) => {
-    res.clearCookie('token');
-    res.redirect('/login');
 });
 
 // ================= CHAT =================
@@ -158,76 +151,71 @@ app.post('/api/chat', authenticate, async (req, res) => {
         const text = response.data.candidates[0].content.parts[0].text;
         res.json({ text });
 
-    } catch (err) {
-        console.error('Chat error:', err);
+    } catch {
         res.status(500).json({ error: "AI error" });
     }
 });
 
-// ================= UI ROUTES =================
+// ================= UI ROUTES (USING SAFE FS.READFILE) =================
 
 // Login page
 app.get('/login', (req, res) => {
-    sendHtmlFile(res, 'login.html');
+    const filePath = path.join(__dirname, '../templates/login.html');
+    serveHtmlFile(res, filePath);
 });
 
-// Student routes
+// Student dashboard
 app.get('/student', authenticate, (req, res) => {
-    sendHtmlFile(res, 'student_dashboard.html');
+    const filePath = path.join(__dirname, '../templates/student_dashboard.html');
+    serveHtmlFile(res, filePath);
 });
 
-app.get('/mycourses', authenticate, (req, res) => {
-    sendHtmlFile(res, 'mycourses.html');
-});
-
-app.get('/learning-path', authenticate, (req, res) => {
-    sendHtmlFile(res, 'learning_path.html');
-});
-
-app.get('/learning-dna', authenticate, (req, res) => {
-    sendHtmlFile(res, 'learning_dna.html');
-});
-
-app.get('/ai-tutor', authenticate, (req, res) => {
-    sendHtmlFile(res, 'ai_tutor.html');
-});
-
-app.get('/gamification', authenticate, (req, res) => {
-    sendHtmlFile(res, 'gamification.html');
-});
-
-app.get('/settings', authenticate, (req, res) => {
-    sendHtmlFile(res, 'settings.html');
-});
-
-app.get('/analytics', authenticate, (req, res) => {
-    sendHtmlFile(res, 'analytics.html');
-});
-
-app.get('/failure-prediction', authenticate, (req, res) => {
-    sendHtmlFile(res, 'failure_prediction.html');
-});
-
-// Teacher routes
+// Teacher dashboard
 app.get('/teacher', authenticate, (req, res) => {
-    if (req.user.role !== 'teacher') return res.redirect('/student');
-    sendHtmlFile(res, 'teacher_dashboard.html');
+    const filePath = path.join(__dirname, '../templates/teacher_dashboard.html');
+    serveHtmlFile(res, filePath);
 });
 
-app.get('/mycoursesteacher', authenticate, (req, res) => {
-    if (req.user.role !== 'teacher') return res.redirect('/student');
-    sendHtmlFile(res, 'mycourseteacher.html');
-});
-
-app.get('/mystudents', authenticate, (req, res) => {
-    if (req.user.role !== 'teacher') return res.redirect('/student');
-    sendHtmlFile(res, 'mystudents.html');
-});
-
-// Admin routes
+// Admin dashboard
 app.get('/admin', authenticate, (req, res) => {
-    if (req.user.role !== 'admin') return res.redirect('/student');
-    sendHtmlFile(res, 'admin_dashboard.html');
+    const filePath = path.join(__dirname, '../templates/admin_dashboard.html');
+    serveHtmlFile(res, filePath);
+});
+
+// My Courses page
+app.get('/mycourses', authenticate, (req, res) => {
+    const filePath = path.join(__dirname, '../templates/mycourses.html');
+    serveHtmlFile(res, filePath);
+});
+
+// Learning Path page
+app.get('/learning-path', authenticate, (req, res) => {
+    const filePath = path.join(__dirname, '../templates/learning_path.html');
+    serveHtmlFile(res, filePath);
+});
+
+// Learning DNA page
+app.get('/learning-dna', authenticate, (req, res) => {
+    const filePath = path.join(__dirname, '../templates/learning_dna.html');
+    serveHtmlFile(res, filePath);
+});
+
+// AI Tutor page
+app.get('/ai-tutor', authenticate, (req, res) => {
+    const filePath = path.join(__dirname, '../templates/ai_tutor.html');
+    serveHtmlFile(res, filePath);
+});
+
+// Gamification page
+app.get('/gamification', authenticate, (req, res) => {
+    const filePath = path.join(__dirname, '../templates/gamification.html');
+    serveHtmlFile(res, filePath);
+});
+
+// Settings page
+app.get('/settings', authenticate, (req, res) => {
+    const filePath = path.join(__dirname, '../templates/settings.html');
+    serveHtmlFile(res, filePath);
 });
 
 // ================= EXPORT =================
@@ -235,6 +223,7 @@ module.exports = serverless(app);
 
 if (process.env.NODE_ENV !== 'production') {
     const PORT = 3000;
+
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
     });
