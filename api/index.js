@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const mongoose = require('mongoose');
 
-// Load .env from root (one level up from api folder)
+// Load .env from root
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
@@ -46,40 +46,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ================= SERVE ALL STATIC FILES MANUALLY THROUGH EXPRESS =================
-app.get('/static/*', (req, res) => {
-    const filePath = path.join(__dirname, '..', req.url);
-    console.log('Attempting to serve:', filePath);
-
-    if (fs.existsSync(filePath)) {
-        const ext = path.extname(filePath);
-        let contentType = 'text/plain';
-        if (ext === '.css') contentType = 'text/css';
-        if (ext === '.js') contentType = 'application/javascript';
-        if (ext === '.png') contentType = 'image/png';
-        if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-        if (ext === '.svg') contentType = 'image/svg+xml';
-
-        res.setHeader('Content-Type', contentType);
-        fs.createReadStream(filePath).pipe(res);
-    } else {
-        console.error('File not found:', filePath);
-        res.status(404).send('File not found');
-    }
-});
-
-// Force serve CSS file specifically
-app.get('/static/css/style.css', (req, res) => {
-    const cssPath = path.join(__dirname, '..', 'static', 'css', 'style.css');
-    console.log('Serving CSS from:', cssPath);
-
-    if (fs.existsSync(cssPath)) {
-        res.setHeader('Content-Type', 'text/css');
-        fs.createReadStream(cssPath).pipe(res);
-    } else {
-        res.status(404).send('CSS not found');
-    }
-});
+// ================= SIMPLE STATIC FILE SERVING =================
+// Serve static files from the static folder
+app.use('/static', express.static(path.join(__dirname, '..', 'static')));
 
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
@@ -95,27 +64,18 @@ const authenticate = (req, res, next) => {
     }
 };
 
-// ================= HELPER: Serve HTML from root/templates =================
+// ================= HELPER: Serve HTML =================
 const serveHtmlFile = (res, fileName) => {
     const filePath = path.join(__dirname, '..', 'templates', fileName);
-
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error(`Error loading file: ${filePath}`, err);
-            return res.status(500).send(`Error loading page: ${fileName}`);
-        }
-        res.setHeader('Content-Type', 'text/html');
-        res.send(data);
-    });
+    res.sendFile(filePath);
 };
 
-// ================= ROOT =================
+// ================= ROUTES =================
 app.get('/', (req, res) => {
-    serveHtmlFile(res, 'login.html');
+    res.sendFile(path.join(__dirname, '..', 'templates', 'login.html'));
 });
 
-// ================= AUTH ROUTES =================
-
+// Auth routes
 app.post('/api/register', async (req, res) => {
     try {
         await connectDB();
@@ -124,7 +84,6 @@ app.post('/api/register', async (req, res) => {
         await User.create({ name, email, password: hashed, role: role || 'student' });
         res.json({ message: 'User created' });
     } catch (err) {
-        console.error('Register error:', err);
         res.status(400).json({ error: 'User already exists' });
     }
 });
@@ -159,7 +118,6 @@ app.post('/api/login', async (req, res) => {
 
         res.json({ message: 'Login success', role: user.role, redirect });
     } catch (err) {
-        console.error('Login error:', err);
         res.status(500).json({ error: 'Login failed' });
     }
 });
@@ -177,11 +135,10 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-// ================= AI CHAT =================
+// Chat route
 app.post('/api/chat', authenticate, async (req, res) => {
     try {
         const { system, messages } = req.body;
-
         const contents = messages.map(m => ({
             role: m.role === 'user' ? 'user' : 'model',
             parts: [{ text: m.content }]
@@ -198,68 +155,68 @@ app.post('/api/chat', authenticate, async (req, res) => {
         const text = response.data.candidates[0].content.parts[0].text;
         res.json({ text });
     } catch (err) {
-        console.error('Chat error:', err?.response?.data || err.message);
         res.status(500).json({ error: 'AI error' });
     }
 });
 
-// ================= PAGE ROUTES =================
-
-app.get('/login', (req, res) => serveHtmlFile(res, 'login.html'));
-
-app.get('/student', authenticate, (req, res) =>
-    serveHtmlFile(res, 'student_dashboard.html'));
-
-app.get('/teacher', authenticate, (req, res) =>
-    serveHtmlFile(res, 'teacher_dashboard.html'));
-
-app.get('/admin', authenticate, (req, res) =>
-    serveHtmlFile(res, 'admin_dashboard.html'));
-
-app.get('/mycourses', authenticate, (req, res) =>
-    serveHtmlFile(res, 'mycourses.html'));
-
-app.get('/mycourseteacher', authenticate, (req, res) =>
-    serveHtmlFile(res, 'mycourseteacher.html'));
-
-app.get('/mystudents', authenticate, (req, res) =>
-    serveHtmlFile(res, 'mystudents.html'));
-
-app.get('/learning-path', authenticate, (req, res) =>
-    serveHtmlFile(res, 'learning_path.html'));
-
-app.get('/learning-dna', authenticate, (req, res) =>
-    serveHtmlFile(res, 'learning_dna.html'));
-
-app.get('/ai-tutor', authenticate, (req, res) =>
-    serveHtmlFile(res, 'ai_tutor.html'));
-
-app.get('/gamification', authenticate, (req, res) =>
-    serveHtmlFile(res, 'gamification.html'));
-
-app.get('/analytics', authenticate, (req, res) =>
-    serveHtmlFile(res, 'analytics.html'));
-
-app.get('/failure-prediction', authenticate, (req, res) =>
-    serveHtmlFile(res, 'failure_prediction.html'));
-
-app.get('/settings', authenticate, (req, res) =>
-    serveHtmlFile(res, 'settings.html'));
-
-// ================= DEBUG ROUTE =================
-app.get('/debug-static', (req, res) => {
-    const staticPathCheck = path.join(__dirname, '..', 'static');
-    const cssPathCheck = path.join(staticPathCheck, 'css', 'style.css');
-
-    res.json({
-        staticExists: fs.existsSync(staticPathCheck),
-        cssExists: fs.existsSync(cssPathCheck),
-        staticPath: staticPathCheck,
-        cssPath: cssPathCheck
-    });
+// Page routes
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'login.html'));
 });
 
-// ================= EXPORT FOR VERCEL =================
+app.get('/student', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'student_dashboard.html'));
+});
+
+app.get('/teacher', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'teacher_dashboard.html'));
+});
+
+app.get('/admin', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'admin_dashboard.html'));
+});
+
+app.get('/mycourses', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'mycourses.html'));
+});
+
+app.get('/mycourseteacher', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'mycourseteacher.html'));
+});
+
+app.get('/mystudents', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'mystudents.html'));
+});
+
+app.get('/learning-path', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'learning_path.html'));
+});
+
+app.get('/learning-dna', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'learning_dna.html'));
+});
+
+app.get('/ai-tutor', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'ai_tutor.html'));
+});
+
+app.get('/gamification', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'gamification.html'));
+});
+
+app.get('/analytics', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'analytics.html'));
+});
+
+app.get('/failure-prediction', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'failure_prediction.html'));
+});
+
+app.get('/settings', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'settings.html'));
+});
+
+// ================= EXPORT =================
 module.exports = app;
 
 // Local dev only
