@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
@@ -38,9 +39,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use('/static', express.static(path.join(__dirname, '../static')));
 
-// ================= VIEWS =================
-// No longer using ejs render, using sendFile instead
-
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
     const token = req.cookies.token;
@@ -55,9 +53,22 @@ const authenticate = (req, res, next) => {
     }
 };
 
+// ================= HELPER FUNCTION FOR SAFE FILE SERVING =================
+const serveHtmlFile = (res, filePath) => {
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            console.error(`Error loading file: ${filePath}`, err);
+            return res.status(500).send("Error loading page");
+        }
+        res.setHeader('Content-Type', 'text/html');
+        res.send(data);
+    });
+};
+
 // ================= ROOT =================
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/login.html'));
+    const filePath = path.join(__dirname, '../templates/login.html');
+    serveHtmlFile(res, filePath);
 });
 
 // ================= API =================
@@ -145,56 +156,66 @@ app.post('/api/chat', authenticate, async (req, res) => {
     }
 });
 
-// ================= UI ROUTES (USING SENDFILE) =================
+// ================= UI ROUTES (USING SAFE FS.READFILE) =================
 
 // Login page
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/login.html'));
+    const filePath = path.join(__dirname, '../templates/login.html');
+    serveHtmlFile(res, filePath);
 });
 
 // Student dashboard
 app.get('/student', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/student_dashboard.html'));
+    const filePath = path.join(__dirname, '../templates/student_dashboard.html');
+    serveHtmlFile(res, filePath);
 });
 
 // Teacher dashboard
 app.get('/teacher', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/teacher_dashboard.html'));
+    const filePath = path.join(__dirname, '../templates/teacher_dashboard.html');
+    serveHtmlFile(res, filePath);
 });
 
 // Admin dashboard
 app.get('/admin', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/admin_dashboard.html'));
+    const filePath = path.join(__dirname, '../templates/admin_dashboard.html');
+    serveHtmlFile(res, filePath);
 });
 
 // My Courses page
 app.get('/mycourses', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/mycourses.html'));
+    const filePath = path.join(__dirname, '../templates/mycourses.html');
+    serveHtmlFile(res, filePath);
 });
 
 // Learning Path page
 app.get('/learning-path', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/learning_path.html'));
+    const filePath = path.join(__dirname, '../templates/learning_path.html');
+    serveHtmlFile(res, filePath);
 });
 
 // Learning DNA page
 app.get('/learning-dna', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/learning_dna.html'));
+    const filePath = path.join(__dirname, '../templates/learning_dna.html');
+    serveHtmlFile(res, filePath);
 });
 
 // AI Tutor page
 app.get('/ai-tutor', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/ai_tutor.html'));
+    const filePath = path.join(__dirname, '../templates/ai_tutor.html');
+    serveHtmlFile(res, filePath);
 });
 
 // Gamification page
 app.get('/gamification', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/gamification.html'));
+    const filePath = path.join(__dirname, '../templates/gamification.html');
+    serveHtmlFile(res, filePath);
 });
 
 // Settings page
 app.get('/settings', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '../templates/settings.html'));
+    const filePath = path.join(__dirname, '../templates/settings.html');
+    serveHtmlFile(res, filePath);
 });
 
 // ================= EXPORT =================
