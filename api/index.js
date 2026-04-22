@@ -7,7 +7,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const mongoose = require('mongoose');
-const serverless = require('serverless-http');
 
 dotenv.config();
 
@@ -19,14 +18,12 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 
 // ================= MONGODB CONNECTION (LAZY - fixes 504 timeout) =================
-// On Vercel, do NOT connect at module load time.
-// Connect once on first request and reuse the cached connection.
 let isConnected = false;
 
 async function connectDB() {
     if (isConnected) return;
     await mongoose.connect(MONGO_URI, {
-        serverSelectionTimeoutMS: 5000,  // fail fast if MongoDB unreachable
+        serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 10000,
     });
     isConnected = true;
@@ -48,8 +45,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Serve static files - on Vercel __dirname is /var/task/api, so go up one level
-app.use('/static', express.static(path.join(__dirname, '../static')));
+// Serve static files
+app.use('/static', express.static(path.join(__dirname, 'static')));
 
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
@@ -66,7 +63,6 @@ const authenticate = (req, res, next) => {
 };
 
 // ================= HELPER: Serve HTML from /templates =================
-// On Vercel the working dir is /var/task, so templates are at /var/task/templates
 const serveHtmlFile = (res, filePath) => {
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
@@ -78,8 +74,7 @@ const serveHtmlFile = (res, filePath) => {
     });
 };
 
-// Helper to build correct template path regardless of environment
-const templatePath = (name) => path.join(__dirname, '../templates', name);
+const templatePath = (name) => path.join(__dirname, 'templates', name);
 
 // ================= ROOT =================
 app.get('/', (req, res) => {
@@ -88,7 +83,6 @@ app.get('/', (req, res) => {
 
 // ================= AUTH ROUTES =================
 
-// ✅ REGISTER
 app.post('/api/register', async (req, res) => {
     try {
         await connectDB();
@@ -102,7 +96,6 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// ✅ LOGIN
 app.post('/api/login', async (req, res) => {
     try {
         await connectDB();
@@ -118,7 +111,13 @@ app.post('/api/login', async (req, res) => {
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.status(401).json({ error: 'Invalid login' });
 
-        const token = jwt.sign(user.toObject(), JWT_SECRET);
+        const token = jwt.sign({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        }, JWT_SECRET);
+
         res.cookie('token', token, { httpOnly: true });
 
         let redirect = '/student';
@@ -132,7 +131,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ================= GET CURRENT USER (used by templates to populate name/email) =================
 app.get('/api/me', authenticate, (req, res) => {
     res.json({
         name: req.user.name || '',
@@ -141,7 +139,6 @@ app.get('/api/me', authenticate, (req, res) => {
     });
 });
 
-// ================= LOGOUT =================
 app.get('/logout', (req, res) => {
     res.clearCookie('token');
     res.redirect('/login');
@@ -216,8 +213,9 @@ app.get('/failure-prediction', authenticate, (req, res) =>
 app.get('/settings', authenticate, (req, res) =>
     serveHtmlFile(res, templatePath('settings.html')));
 
-// ================= EXPORT =================
-module.exports = serverless(app);
+// ================= EXPORT FOR VERCEL =================
+// No serverless-http needed - just export app directly
+module.exports = app;
 
 // Local dev only
 if (process.env.NODE_ENV !== 'production') {
