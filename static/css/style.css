@@ -442,13 +442,11 @@ body { overflow-x: hidden; }
   .page-content { padding: 16px; }
 
   .card { width: 100%; flex-wrap: wrap; }
-  .top-header { padding: 10px 16px; flex-wrap: wrap; }
-  .header-actions { flex-wrap: wrap; }
+  .top-header { padding: 12px 16px; flex-wrap: wrap; gap: 12px; }
+  .header-actions { display: flex; align-items: center; gap: 12px; }
   
-  .btn { width: 100%; justify-content: center; margin-bottom: 8px; }
-  .btn-icon { width: auto; margin-bottom: 0; }
-  
-  .mobile-menu-btn { display: block; }
+  .top-header > .input-wrap { order: 3; width: 100%; max-width: 100% !important; margin-top: 8px; }
+  .mobile-menu-btn { display: block; width: auto !important; padding: 8px; }
   .sidebar { 
     position: fixed; 
     left: -280px; 
@@ -545,7 +543,7 @@ body { overflow-x: hidden; }
     font-size: 16px;
   }
   
-  input, button {
+  input, button:not(.mobile-menu-btn):not(.btn-icon):not(.tab-trigger) {
     width: 100%;
     border-radius: 10px;
   }
