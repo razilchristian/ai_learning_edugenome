@@ -294,7 +294,7 @@ async function sendMsg() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error?.message || 'API error');
 
-    const aiText = data.content?.[0]?.text || 'Sorry, I could not generate a response.';
+    const aiText = data.text || 'Sorry, I could not generate a response.';
 
     removeTypingIndicator();
     const msgId = addAIMsg();
