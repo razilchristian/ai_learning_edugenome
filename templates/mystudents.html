@@ -18,10 +18,9 @@
 </style>
 </head>
 <body>
-<!-- Splash Screen -->
-<div id="splash">
-  <img src="/static/eduimage.jpeg" alt="Splash" />
-</div>
+<div id="splash"></div>
+
+
 
 
 
@@ -361,29 +360,25 @@ renderTable(students);
 
 
 
+
 <script>
-// Splash Logic (No Flicker)
-if (window.innerWidth > 768) {
-  document.getElementById("splash").style.display = "none";
-  document.body.classList.add("loaded");
-} else {
-  window.addEventListener("load", () => {
-    const splash = document.getElementById("splash");
-    
-    // Show page after splash
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splash");
+  
+  if (window.innerWidth < 768) {
     setTimeout(() => {
       splash.style.transition = "opacity 0.8s ease";
       splash.style.opacity = "0";
-      
-      document.body.classList.add("loaded");
       
       setTimeout(() => {
         splash.style.display = "none";
       }, 800);
       
-    }, 4500); // 4.5 seconds
-  });
-}
+    }, 4500);
+  } else {
+    splash.style.display = "none";
+  }
+});
 
 // Mobile Sidebar Toggle
 document.addEventListener('click', (e) => {
