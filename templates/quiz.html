@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGenome - Quiz</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+        <a href="/quiz"><button class="nav-btn active"><i data-lucide="clock" style="width:16px;height:16px"></i>Quiz</button></a>
+      </nav>
+      <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+        <div class="input-wrap" style="max-width:400px;flex:1"></div>
+        <div class="header-actions">
+          <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=student" alt="Avatar"></div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <h1 class="font-bold text-slate-900" style="font-size:28px">Available Quizzes</h1>
+        <p class="text-slate-600 mt-1">Test your knowledge and earn XP.</p>
+
+        <div id="quizList" class="grid-2col mt-4">
+          <!-- Quizzes will be loaded here -->
+        </div>
+
+        <div id="activeQuizArea" style="display: none;" class="card mt-4">
+          <div class="card-header flex justify-between items-center">
+            <div class="card-title" id="activeQuizTitle">Quiz Title</div>
+            <div class="text-red font-bold" id="quizTimer" style="font-size:20px;display:none;">00:00</div>
+          </div>
+          <div class="card-content" id="activeQuizContent">
+            <!-- Questions loaded here -->
+          </div>
+          <div class="p-4 border-t" id="submitQuizArea" style="display:none;">
+            <button class="btn btn-primary" onclick="submitQuiz()">Submit Answers</button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    let currentQuiz = null;
+    let timerInterval = null;
+
+    async function loadQuizzes() {
+      try {
+        const res = await fetch('/api/quizzes');
+        const quizzes = await res.json();
+        
+        const listDiv = document.getElementById('quizList');
+        if (quizzes.length === 0) {
+          listDiv.innerHTML = '<p class="text-muted">No quizzes available right now.</p>';
+          return;
+        }
+
+        listDiv.innerHTML = quizzes.map(q => `
+          <div class="card">
+            <div class="card-content p-4">
+              <h3 class="font-bold text-lg">${q.title}</h3>
+              <p class="text-sm text-muted mb-4">${q.subject} • ${q.duration} minutes</p>
+              <button class="btn btn-primary btn-full" onclick="startQuiz('${q._id}', ${q.duration})">Start Quiz</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadQuizzes();
+
+    async function startQuiz(id, durationMins) {
+      try {
+        const res = await fetch(`/api/quiz/${id}`);
+        const quiz = await res.json();
+        currentQuiz = quiz;
+
+        document.getElementById('quizList').style.display = 'none';
+        document.getElementById('activeQuizArea').style.display = 'block';
+        document.getElementById('submitQuizArea').style.display = 'block';
+        document.getElementById('quizTimer').style.display = 'block';
+        document.getElementById('activeQuizTitle').innerText = quiz.title;
+
+        let qHtml = '';
+        quiz.questions.forEach((q, idx) => {
+          qHtml += `
+            <div class="mb-6 p-4 border rounded" style="border:1px solid var(--border)">
+              <p class="font-semibold mb-3">${idx + 1}. ${q.question}</p>
+              <div class="space-y-2">
+                ${q.options.map((opt, optIdx) => `
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="q-${idx}" value="${opt}">
+                    <span>${opt}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        });
+        document.getElementById('activeQuizContent').innerHTML = qHtml;
+
+        // Start timer
+        let timeLeft = durationMins * 60;
+        updateTimerDisplay(timeLeft);
+        
+        timerInterval = setInterval(() => {
+          timeLeft--;
+          updateTimerDisplay(timeLeft);
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert("Time's up!");
+            submitQuiz();
+          }
+        }, 1000);
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function updateTimerDisplay(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      document.getElementById('quizTimer').innerText = `${m}:${s}`;
+    }
+
+    async function submitQuiz() {
+      if (timerInterval) clearInterval(timerInterval);
+      
+      const answers = [];
+      currentQuiz.questions.forEach((q, idx) => {
+        const selected = document.querySelector(`input[name="q-${idx}"]:checked`);
+        answers.push(selected ? selected.value : null);
+      });
+
+      try {
+        const res = await fetch('/api/quiz/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quizId: currentQuiz._id, answers })
+        });
+        const result = await res.json();
+
+        document.getElementById('activeQuizContent').innerHTML = `
+          <div class="text-center py-8">
+            <h2 class="text-3xl font-bold text-primary mb-2">Quiz Completed!</h2>
+            <p class="text-xl">Your Score: <span class="font-bold text-green">${result.score} / ${result.total}</span></p>
+            <button class="btn btn-outline mt-6" onclick="window.location.reload()">Back to Quizzes</button>
+          </div>
+        `;
+        document.getElementById('submitQuizArea').style.display = 'none';
+        document.getElementById('quizTimer').style.display = 'none';
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const sidebar = document.querySelector('.sidebar');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -41,6 +41,22 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
+// ================= QUIZ MODEL =================
+const QuizSchema = new mongoose.Schema({
+    subject: String,
+    title: String,
+    duration: Number, // in minutes
+    questions: [
+        {
+            question: String,
+            options: [String],
+            answer: String
+        }
+    ]
+});
+
+const Quiz = mongoose.models.Quiz || mongoose.model('Quiz', QuizSchema);
+
 // ================= MIDDLEWARE =================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -162,6 +178,84 @@ app.post('/api/chat', authenticate, async (req, res) => {
 // Page routes
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'templates', 'login.html'));
+});
+
+app.get('/teacher-login', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'teacher-login.html'));
+});
+
+app.get('/admin-login', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'admin-login.html'));
+});
+
+// Quiz routes
+app.post('/api/quiz', authenticate, async (req, res) => {
+    try {
+        if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        await connectDB();
+        const quiz = await Quiz.create(req.body);
+        res.json({ message: 'Quiz created successfully', quiz });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to create quiz' });
+    }
+});
+
+app.get('/api/quizzes', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const quizzes = await Quiz.find({}, 'subject title duration');
+        res.json(quizzes);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch quizzes' });
+    }
+});
+
+app.get('/api/quiz/:id', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const quiz = await Quiz.findById(req.params.id);
+        if (!quiz) return res.status(404).json({ error: 'Quiz not found' });
+        // Don't send answers to students
+        if (req.user.role === 'student') {
+            const safeQuiz = quiz.toObject();
+            safeQuiz.questions.forEach(q => delete q.answer);
+            return res.json(safeQuiz);
+        }
+        res.json(quiz);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch quiz' });
+    }
+});
+
+app.post('/api/quiz/submit', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const { quizId, answers } = req.body;
+        const quiz = await Quiz.findById(quizId);
+        if (!quiz) return res.status(404).json({ error: 'Quiz not found' });
+
+        let score = 0;
+        quiz.questions.forEach((q, index) => {
+            if (answers[index] === q.answer) {
+                score++;
+            }
+        });
+
+        res.json({ score, total: quiz.questions.length });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to submit quiz' });
+    }
+});
+
+app.get('/quiz', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'quiz.html'));
+});
+
+app.get('/manage-quiz', authenticate, (req, res) => {
+    if (req.user.role === 'student') return res.redirect('/student');
+    res.sendFile(path.join(__dirname, '..', 'templates', 'manage_quiz.html'));
 });
 
 app.get('/student', authenticate, (req, res) => {

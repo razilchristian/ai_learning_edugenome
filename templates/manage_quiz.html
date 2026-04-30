@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduGenome - Manage Quiz</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/teacher"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+        <a href="/manage-quiz"><button class="nav-btn active"><i data-lucide="clock" style="width:16px;height:16px"></i>Manage Quiz</button></a>
+      </nav>
+      <div class="sidebar-footer"><a href="/login"><button class="btn btn-outline btn-full">Logout</button></a></div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+        <div class="input-wrap" style="max-width:400px;flex:1"></div>
+        <div class="header-actions">
+          <div class="avatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=teacher" alt="Avatar"></div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <h1 class="font-bold text-slate-900" style="font-size:28px">Manage Quizzes</h1>
+        <p class="text-slate-600 mt-1">Create and view quizzes for your students.</p>
+
+        <div class="card mt-4">
+          <div class="card-header">
+            <div class="card-title">Create New Quiz</div>
+          </div>
+          <div class="card-content space-y-4">
+            <div>
+              <label class="label">Subject</label>
+              <input type="text" id="quizSubject" class="input" placeholder="e.g. Mathematics">
+            </div>
+            <div>
+              <label class="label">Title</label>
+              <input type="text" id="quizTitle" class="input" placeholder="e.g. Algebra Basics">
+            </div>
+            <div>
+              <label class="label">Duration (minutes)</label>
+              <input type="number" id="quizDuration" class="input" placeholder="e.g. 30">
+            </div>
+
+            <div id="questionsContainer" class="space-y-4 mt-4">
+              <!-- Questions will be added here -->
+            </div>
+
+            <button class="btn btn-secondary mt-2" onclick="addQuestion()">+ Add Question</button>
+            <div class="mt-6">
+              <button class="btn btn-primary btn-full" onclick="saveQuiz()">Save Quiz</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    let questionCount = 0;
+
+    function addQuestion() {
+      questionCount++;
+      const html = `
+        <div class="p-4 border rounded" style="border:1px solid var(--border); background:var(--card)" id="q-${questionCount}">
+          <label class="label">Question ${questionCount}</label>
+          <input type="text" class="input q-text mb-2" placeholder="Enter question">
+          
+          <label class="label">Options (Comma separated)</label>
+          <input type="text" class="input q-opts mb-2" placeholder="Option A, Option B, Option C, Option D">
+          
+          <label class="label">Correct Answer</label>
+          <input type="text" class="input q-ans" placeholder="Must match one of the options exactly">
+        </div>
+      `;
+      document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', html);
+    }
+
+    // Initialize with 1 question
+    addQuestion();
+
+    async function saveQuiz() {
+      const subject = document.getElementById('quizSubject').value;
+      const title = document.getElementById('quizTitle').value;
+      const duration = document.getElementById('quizDuration').value;
+
+      const questions = [];
+      for (let i = 1; i <= questionCount; i++) {
+        const qDiv = document.getElementById(`q-${i}`);
+        if (!qDiv) continue;
+        const qText = qDiv.querySelector('.q-text').value;
+        const qOpts = qDiv.querySelector('.q-opts').value.split(',').map(s => s.trim());
+        const qAns = qDiv.querySelector('.q-ans').value.trim();
+
+        if (qText && qOpts.length > 0 && qAns) {
+          questions.push({ question: qText, options: qOpts, answer: qAns });
+        }
+      }
+
+      if (!subject || !title || !duration || questions.length === 0) {
+        return alert('Please fill all fields and add at least one complete question.');
+      }
+
+      try {
+        const res = await fetch('/api/quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject, title, duration: Number(duration), questions })
+        });
+        if (res.ok) {
+          alert('Quiz created successfully!');
+          window.location.reload();
+        } else {
+          const data = await res.json();
+          alert(data.error || 'Failed to create quiz');
+        }
+      } catch (err) {
+        alert('Server error');
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const sidebar = document.querySelector('.sidebar');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

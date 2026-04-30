@@ -408,7 +408,7 @@ nav.border-b { background: rgba(255,255,255,0.92) !important; backdrop-filter: b
 ═══════════════════════════════════════ */
 .mobile-menu-btn { display: none; background: transparent; border: none; color: #fff; cursor: pointer; padding: 4px; }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-@media (max-width: 900px) {
+@media (max-width: 768px) {
   .mobile-menu-btn { display: block; }
   .sidebar { 
     position: fixed; 
