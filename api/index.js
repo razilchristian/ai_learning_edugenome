@@ -171,6 +171,7 @@ app.post('/api/chat', authenticate, async (req, res) => {
         const text = response.data.candidates[0].content.parts[0].text;
         res.json({ text });
     } catch (err) {
+        console.error('Chat API Error:', err.response?.data || err.message);
         res.status(500).json({ error: 'AI error' });
     }
 });
