@@ -12,6 +12,11 @@
 </head>
 
 <body>
+<!-- Splash Screen -->
+<div id="splash">
+  <img src="/static/eduimage.jpeg" alt="Splash Image" />
+</div>
+
   <div class="app-layout">
     <aside class="sidebar">
       <div class="sidebar-logo">
@@ -245,6 +250,36 @@
       document.querySelectorAll('[data-user-role]').forEach(el => el.textContent = u.role.charAt(0).toUpperCase() + u.role.slice(1));
     }).catch(() => { });
   </script>
+
+<script>
+  // Mobile Sidebar Toggle
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && menuBtn) {
+      if (menuBtn.contains(e.target)) {
+        // Menu button clicked: already handled by inline onclick, but we can ensure it here
+      } else if (sidebar.classList.contains('open') && !sidebar.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    }
+  });
+
+  // Splash Screen Logic
+  if (window.innerWidth < 768) {
+    const splash = document.getElementById('splash');
+    if (splash) {
+      setTimeout(() => {
+        splash.style.opacity = '0';
+        setTimeout(() => splash.style.display = 'none', 500);
+      }, 2500);
+    }
+  } else {
+    const splash = document.getElementById('splash');
+    if (splash) splash.style.display = 'none';
+  }
+</script>
+
 </body>
 
 </html>

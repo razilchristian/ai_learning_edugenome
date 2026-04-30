@@ -14,6 +14,11 @@
 </style>
 </head>
 <body>
+<!-- Splash Screen -->
+<div id="splash">
+  <img src="/static/eduimage.jpeg" alt="Splash Image" />
+</div>
+
 <div class="app-layout">
   <aside class="sidebar">
     <div class="sidebar-logo"><a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a></div>
@@ -224,5 +229,35 @@ function showNode(id) {
     }
   });
 </script>
+
+<script>
+  // Mobile Sidebar Toggle
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && menuBtn) {
+      if (menuBtn.contains(e.target)) {
+        // Menu button clicked: already handled by inline onclick, but we can ensure it here
+      } else if (sidebar.classList.contains('open') && !sidebar.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    }
+  });
+
+  // Splash Screen Logic
+  if (window.innerWidth < 768) {
+    const splash = document.getElementById('splash');
+    if (splash) {
+      setTimeout(() => {
+        splash.style.opacity = '0';
+        setTimeout(() => splash.style.display = 'none', 500);
+      }, 2500);
+    }
+  } else {
+    const splash = document.getElementById('splash');
+    if (splash) splash.style.display = 'none';
+  }
+</script>
+
 </body>
 </html>

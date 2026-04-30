@@ -8,6 +8,11 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
+<!-- Splash Screen -->
+<div id="splash">
+  <img src="/static/eduimage.jpeg" alt="Splash Image" />
+</div>
+
 <!-- Navbar -->
 <nav class="border-b bg-white sticky top-0 z-10" style="background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(124,58,237,0.15)">
   <div class="flex items-center justify-between px-6 py-4" style="max-width:1280px;margin:0 auto">
@@ -123,5 +128,35 @@
 </footer>
 
 <script>lucide.createIcons();</script>
+
+<script>
+  // Mobile Sidebar Toggle
+  document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.querySelector('.mobile-menu-btn');
+    if (sidebar && menuBtn) {
+      if (menuBtn.contains(e.target)) {
+        // Menu button clicked: already handled by inline onclick, but we can ensure it here
+      } else if (sidebar.classList.contains('open') && !sidebar.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    }
+  });
+
+  // Splash Screen Logic
+  if (window.innerWidth < 768) {
+    const splash = document.getElementById('splash');
+    if (splash) {
+      setTimeout(() => {
+        splash.style.opacity = '0';
+        setTimeout(() => splash.style.display = 'none', 500);
+      }, 2500);
+    }
+  } else {
+    const splash = document.getElementById('splash');
+    if (splash) splash.style.display = 'none';
+  }
+</script>
+
 </body>
 </html>
