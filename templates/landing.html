@@ -134,19 +134,23 @@
 
 
 
+
 <script>
 window.addEventListener("load", () => {
   const splash = document.getElementById("splash");
-  
-  if (window.innerWidth < 768) {
+  const hasSeenSplash = sessionStorage.getItem("splashShown");
+
+  if (window.innerWidth < 768 && !hasSeenSplash) {
+    sessionStorage.setItem("splashShown", "true");
+
     setTimeout(() => {
       splash.style.transition = "opacity 0.8s ease";
       splash.style.opacity = "0";
-      
+
       setTimeout(() => {
         splash.style.display = "none";
       }, 800);
-      
+
     }, 4500);
   } else {
     splash.style.display = "none";
