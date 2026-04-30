@@ -161,7 +161,7 @@ app.post('/api/chat', authenticate, async (req, res) => {
         }));
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
             {
                 system_instruction: { parts: [{ text: system || '' }] },
                 contents
