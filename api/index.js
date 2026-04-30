@@ -161,7 +161,7 @@ app.post('/api/chat', authenticate, async (req, res) => {
         }));
 
         const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
             {
                 system_instruction: { parts: [{ text: system || '' }] },
                 contents
@@ -172,7 +172,7 @@ app.post('/api/chat', authenticate, async (req, res) => {
         res.json({ text });
     } catch (err) {
         console.error('Chat API Error:', err.response?.data || err.message);
-        res.status(500).json({ error: 'AI error' });
+        res.status(500).json({ error: { message: err.response?.data?.error?.message || 'AI error' } });
     }
 });
 
