@@ -561,5 +561,15 @@ document.addEventListener('click', (e) => {
   }
 });
 </script>
+
+<script>
+  fetch('/api/me').then(r => r.json()).then(u => {
+    if (u && u.role) {
+      localStorage.setItem('edugenome-role', u.role);
+      var theme = localStorage.getItem('theme_' + u.role) || 'purple';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }).catch(() => {});
+</script>
 </body>
 </html>
