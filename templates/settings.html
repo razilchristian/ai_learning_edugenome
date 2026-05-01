@@ -635,6 +635,10 @@
                     <div class="theme-preview" style="background:linear-gradient(135deg,#1e3a5f,#2563eb)"></div>
                     <p class="theme-name">Ocean Blue</p>
                   </div>
+                  <div class="theme-card" data-theme-value="green" onclick="setTheme('green')">
+                    <div class="theme-preview" style="background:linear-gradient(135deg,#064e3b,#10b981)"></div>
+                    <p class="theme-name">Emerald Green</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -826,8 +830,9 @@
     }
 
     function setTheme(theme) {
+      var role = localStorage.getItem('edugenome-role') || 'student';
       document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('edugenome-theme', theme);
+      localStorage.setItem('theme_' + role, theme);
       document.querySelectorAll('.theme-card').forEach(c => {
         const isActive = c.dataset.themeValue === theme;
         c.classList.toggle('active', isActive);
@@ -840,9 +845,10 @@
       showToast('Theme updated!');
     }
 
-    // Highlight active theme card on page load
+    // Highlight active theme card on page load (role-aware)
     (function() {
-      const current = localStorage.getItem('edugenome-theme') || 'purple';
+      var role = localStorage.getItem('edugenome-role') || 'student';
+      const current = localStorage.getItem('theme_' + role) || 'purple';
       document.querySelectorAll('.theme-card').forEach(c => {
         const isActive = c.dataset.themeValue === current;
         c.classList.toggle('active', isActive);

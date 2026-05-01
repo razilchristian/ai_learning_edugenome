@@ -52,6 +52,25 @@
   --accent-light-bg: rgba(37,99,235,0.1);
   --accent-light-border: rgba(37,99,235,0.3);
 }
+
+/* ─── Emerald Green Gradient Theme ─── */
+[data-theme="green"] {
+  --accent: #059669;
+  --accent-foreground: #ffffff;
+  --gradient-main: linear-gradient(135deg, #064e3b, #059669, #10b981);
+  --gradient-soft: linear-gradient(135deg, #34d399, #6ee7b7);
+  --gradient-btn: linear-gradient(135deg, #059669, #047857);
+  --gradient-chat: linear-gradient(135deg, #047857, #10b981);
+  --header-bg: linear-gradient(135deg, #064e3b, #059669, #10b981);
+  --sidebar-bg: #022c22;
+  --sidebar-text: #6ee7b7;
+  --sidebar-active: #059669;
+  --sidebar-hover: rgba(5,150,105,0.2);
+  --sidebar-active-shadow: rgba(5,150,105,0.4);
+  --toggle-active: #059669;
+  --accent-light-bg: rgba(5,150,105,0.1);
+  --accent-light-border: rgba(5,150,105,0.3);
+}
 * { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; }
 body { font-family: 'Inter', system-ui, sans-serif; color: var(--foreground); background: var(--background); font-size: 16px; line-height: 1.5; }
 a { text-decoration: none; color: inherit; }

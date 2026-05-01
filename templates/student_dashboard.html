@@ -240,11 +240,13 @@
   </script>
   <script>
     fetch("/api/me").then(r => r.json()).then(u => {
+      localStorage.setItem('edugenome-role', u.role || 'student');
       document.querySelectorAll("#user-name").forEach(el => el.textContent = u.name);
     }).catch(() => { });
   </script>
   <script>
     fetch('/api/me').then(r => r.json()).then(u => {
+      localStorage.setItem('edugenome-role', u.role || 'student');
       document.querySelectorAll('[data-user-name]').forEach(el => el.textContent = u.name);
       document.querySelectorAll('[data-user-email]').forEach(el => el.value = u.email);
       document.querySelectorAll('[data-user-firstname]').forEach(el => el.value = (u.name || '').split(' ')[0]);

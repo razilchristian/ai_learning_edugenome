@@ -396,5 +396,14 @@ document.addEventListener('click', (e) => {
   }
 });
 </script>
+
+<script>
+  fetch('/api/me').then(r => r.json()).then(u => {
+    localStorage.setItem('edugenome-role', u.role || 'student');
+    // Re-apply theme after role is known
+    var theme = localStorage.getItem('theme_' + (u.role || 'student')) || 'purple';
+    document.documentElement.setAttribute('data-theme', theme);
+  }).catch(() => {});
+</script>
 </body>
 </html>

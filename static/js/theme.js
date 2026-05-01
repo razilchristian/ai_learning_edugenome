@@ -1,6 +1,7 @@
-// EduGenome Theme Loader
-// Must run BEFORE body renders to prevent flash of wrong theme
+// EduGenome Theme Loader — Role-Isolated
+// Runs BEFORE body renders to prevent flash of wrong theme
 (function() {
-  var theme = localStorage.getItem('edugenome-theme') || 'purple';
+  var role = localStorage.getItem('edugenome-role') || 'student';
+  var theme = localStorage.getItem('theme_' + role) || 'purple';
   document.documentElement.setAttribute('data-theme', theme);
 })();
