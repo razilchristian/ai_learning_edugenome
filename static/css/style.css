@@ -404,25 +404,20 @@ nav.border-b { background: rgba(255,255,255,0.92) !important; backdrop-filter: b
 .login-orb2 { position: absolute; bottom: 40px; right: 40px; width: 384px; height: 384px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(32px); }
 
 /* ═══════════════════════════════════════
-   SPLASH SCREEN
+   SPLASH SCREEN (SINGLE SOURCE OF TRUTH)
 ═══════════════════════════════════════ */
 #splash {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: #0f172a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: opacity 0.5s ease;
-}
-
-#splash img {
-  width: 80%;
-  max-width: 300px;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('/static/eduimage.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #0f172a;
+  z-index: 999999;
 }
 
 @media (min-width: 768px) {
@@ -430,82 +425,32 @@ nav.border-b { background: rgba(255,255,255,0.92) !important; backdrop-filter: b
 }
 
 /* ═══════════════════════════════════════
-   RESPONSIVE
+   RESPONSIVE — MOBILE LAYOUT SYSTEM
 ═══════════════════════════════════════ */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 body { overflow-x: hidden; }
 
-.mobile-menu-btn { display: none; background: transparent; border: none; color: #fff; cursor: pointer; padding: 4px; }
-.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-
-@media (max-width: 768px) {
-  body, .app-layout, .main-content { max-width: 100%; overflow-x: hidden; }
-  .page-content { padding: 16px; }
-
-  .card { width: 100%; flex-wrap: wrap; }
-  .top-header { padding: 12px 16px; flex-wrap: wrap; gap: 12px; }
-  .header-actions { display: flex; align-items: center; gap: 12px; }
-  
-  .top-header > .input-wrap { order: 3; width: 100%; max-width: 100% !important; margin-top: 8px; }
-  .mobile-menu-btn { display: block; width: auto !important; padding: 8px; }
-  .sidebar { 
-    position: fixed; 
-    left: -280px; 
-    top: 0; 
-    bottom: 0; 
-    z-index: 50; 
-    transition: left 0.3s ease; 
-    width: 280px;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
-  }
-  .sidebar.open { left: 0; }
-  .sidebar.open + .main-content .sidebar-overlay { display: block; }
-  
-  .hero-grid, .login-layout { grid-template-columns: 1fr; }
-  .login-right { display: none; }
-  
-  .feat-grid, .metric-cards, .grid-2col, .grid-3col, .grid-4col, .footer-grid, .predict-form .form-row { 
-    grid-template-columns: 1fr !important; 
-  }
-}
-@media (max-width: 480px) {
-  /* Retained for backward compatibility */
-  .metric-cards, .grid-4col, .feat-grid { grid-template-columns: 1fr; }
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 8px;
+  width: auto !important;
+  flex-shrink: 0;
 }
 
-/* ═══════════════════════════════════════
-   GLOBAL MOBILE CONSISTENCY FIXES
-═══════════════════════════════════════ */
-
-.main-container {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-}
-
-.header-title {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.sidebar {
+.sidebar-overlay {
+  display: none;
   position: fixed;
-  left: -100%;
-  top: 0;
-  width: 250px;
-  height: 100%;
-  transition: 0.3s;
-  z-index: 1000;
-}
-
-.sidebar.active, .sidebar.open {
-  left: 0;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 40;
 }
 
 .overlay {
@@ -519,76 +464,137 @@ body { overflow-x: hidden; }
   z-index: 999;
 }
 
-.overlay.active, .sidebar-overlay {
+.overlay.active {
   display: block;
 }
 
-.card {
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
+/* ═══════════════════════════════════════
+   MOBILE BREAKPOINT — 768px
+═══════════════════════════════════════ */
 @media (max-width: 768px) {
-  body {
-    padding: 0;
+  body, .app-layout, .main-content {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
-  .main-container {
-    padding: 12px;
+  body { padding: 0; }
+
+  .page-content { padding: 16px; }
+
+  /* ─── Header ─── */
+  .top-header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
-  .header-title {
-    font-size: 16px;
-  }
-  
-  input, button:not(.mobile-menu-btn):not(.btn-icon):not(.tab-trigger) {
+  .top-header > .input-wrap {
+    order: 3;
     width: 100%;
-    border-radius: 10px;
+    max-width: 100% !important;
+    margin-top: 4px;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ─── Sidebar drawer ─── */
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    width: 280px;
+    height: 100%;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+
+  .sidebar.open,
+  .sidebar.active {
+    left: 0;
+  }
+
+  .sidebar.open + .main-content .sidebar-overlay { display: block; }
+
+  /* ─── Cards ─── */
+  .card {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  /* ─── Grids collapse to single column ─── */
+  .feat-grid, .metric-cards, .grid-2col, .grid-3col, .grid-4col,
+  .footer-grid, .predict-form .form-row, .course-grid,
+  .form-row, .settings-layout, .theme-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ─── Settings page vertical stack ─── */
+  .settings-layout {
+    flex-direction: column !important;
+    padding: 16px !important;
+  }
+
+  .settings-nav {
+    width: 100% !important;
+  }
+
+  .settings-content {
+    width: 100% !important;
+  }
+
+  /* ─── Login ─── */
+  .hero-grid, .login-layout { grid-template-columns: 1fr; }
+  .login-right { display: none; }
+
+  /* ─── Chat (AI Tutor) ─── */
+  .chat-input-area {
+    position: sticky;
+    bottom: 0;
+    width: 100%;
+  }
+
+  .chat-scroll {
+    padding: 16px !important;
+  }
+
+  .chat-bubble {
+    max-width: 90% !important;
+  }
+
+  /* ─── Buttons: full-width except icons ─── */
+  .btn:not(.btn-icon):not(.btn-sm):not(.btn-ghost):not(.mobile-menu-btn):not(.filter-btn):not(.clear-btn) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-icon, .btn-sm, .btn-ghost, .filter-btn, .clear-btn {
+    width: auto !important;
+  }
+
+  /* ─── Typography mobile scaling ─── */
+  .top-header h2, .top-header h1 {
+    font-size: 18px !important;
+  }
+
+  .top-header p {
+    font-size: 13px !important;
   }
 }
-/* ═══════════════════════════════════════
-   SPLASH SCREEN
-═══════════════════════════════════════ */
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
 
-#splash {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9999;
-  background: black;
-}
-
-#splash img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-@media (min-width: 768px) {
-  #splash { display: none !important; }
-}
-
-/* ═══════════════════════════════════════
-   SPLASH SCREEN
-═══════════════════════════════════════ */
-#splash {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-image: url('/static/eduimage.jpeg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  z-index: 999999;
+@media (max-width: 480px) {
+  .metric-cards, .grid-4col, .feat-grid { grid-template-columns: 1fr; }
+  .page-content { padding: 12px; }
 }
