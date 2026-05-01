@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EduGenome - Settings</title>
   <link rel="stylesheet" href="/static/css/style.css">
+  <script src="/static/js/theme.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -622,21 +623,17 @@
 
             <div class="card" style="margin-bottom:16px">
               <div class="card-header">
-                <p class="card-title"><i data-lucide="sun" style="width:18px;height:18px;color:#7c3aed"></i>Theme</p>
+                <p class="card-title"><i data-lucide="sun" style="width:18px;height:18px;color:var(--accent)"></i>Theme</p>
               </div>
               <div class="card-content">
                 <div class="theme-grid">
-                  <div class="theme-card active" onclick="selectTheme(this)">
-                    <div class="theme-preview" style="background:linear-gradient(135deg,#1e1b4b,#7c3aed)"></div>
-                    <p class="theme-name">Purple Dark <span style="color:#7c3aed">✓</span></p>
+                  <div class="theme-card" data-theme-value="purple" onclick="setTheme('purple')">
+                    <div class="theme-preview" style="background:linear-gradient(135deg,#4c1d95,#7c3aed)"></div>
+                    <p class="theme-name">Purple Gradient</p>
                   </div>
-                  <div class="theme-card" onclick="selectTheme(this)">
+                  <div class="theme-card" data-theme-value="blue" onclick="setTheme('blue')">
                     <div class="theme-preview" style="background:linear-gradient(135deg,#1e3a5f,#2563eb)"></div>
                     <p class="theme-name">Ocean Blue</p>
-                  </div>
-                  <div class="theme-card" onclick="selectTheme(this)">
-                    <div class="theme-preview" style="background:linear-gradient(135deg,#064e3b,#10b981)"></div>
-                    <p class="theme-name">Emerald</p>
                   </div>
                 </div>
               </div>
@@ -828,15 +825,33 @@
       setTimeout(() => t.classList.remove('show'), 3000);
     }
 
-    function selectTheme(el) {
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('edugenome-theme', theme);
       document.querySelectorAll('.theme-card').forEach(c => {
-        c.classList.remove('active');
-        c.querySelector('.theme-name').innerHTML = c.querySelector('.theme-name').textContent.replace(' ✓', '');
+        const isActive = c.dataset.themeValue === theme;
+        c.classList.toggle('active', isActive);
+        const nameEl = c.querySelector('.theme-name');
+        const baseName = nameEl.textContent.replace(' ✓', '');
+        nameEl.innerHTML = isActive
+          ? baseName + ' <span style="color:var(--accent)">✓</span>'
+          : baseName;
       });
-      el.classList.add('active');
-      el.querySelector('.theme-name').innerHTML += ' <span style="color:#7c3aed">✓</span>';
       showToast('Theme updated!');
     }
+
+    // Highlight active theme card on page load
+    (function() {
+      const current = localStorage.getItem('edugenome-theme') || 'purple';
+      document.querySelectorAll('.theme-card').forEach(c => {
+        const isActive = c.dataset.themeValue === current;
+        c.classList.toggle('active', isActive);
+        const nameEl = c.querySelector('.theme-name');
+        if (isActive) {
+          nameEl.innerHTML = nameEl.textContent.replace(' ✓', '') + ' <span style="color:var(--accent)">✓</span>';
+        }
+      });
+    })()
 
     function confirmDanger(msg) {
       if (confirm('Are you sure? ' + msg + '\nThis cannot be undone.')) {
