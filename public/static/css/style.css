@@ -488,11 +488,12 @@ body { overflow-x: hidden; }
 
 .mobile-menu-btn {
   display: none;
-  background: transparent;
+  background: none;
   border: none;
   color: #fff;
   cursor: pointer;
   padding: 8px;
+  font-size: 24px;
   width: auto !important;
   flex-shrink: 0;
 }
