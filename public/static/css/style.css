@@ -498,6 +498,11 @@ body { overflow-x: hidden; }
   flex-shrink: 0;
 }
 
+/* Mobile-specific header toggle (course player) */
+.mobile-toggle { z-index: 9999; }
+.mobile-toggle .btn-icon { color: var(--foreground); font-size: 20px; background: transparent; border: none; }
+.mobile-toggle .btn-icon i, .mobile-toggle .btn-icon svg { color: var(--foreground); stroke: currentColor; }
+
 .sidebar-overlay {
   display: none;
   position: fixed;
