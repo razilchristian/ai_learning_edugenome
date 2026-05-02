@@ -1044,42 +1044,82 @@
           nameEl.innerHTML = nameEl.textContent.replace(' ✓', '') + ' <span style="color:var(--accent)">✓</span>';
         }
       });
+    })();
 
-<script>
-window.addEventListener("load", () => {
-  const splash = document.getElementById("splash");
-  const hasSeenSplash = sessionStorage.getItem("splashShown");
+    function loadProfile() {
+      fetch('/api/profile')
+        .then(r => r.json())
+        .then(data => {
+          if(!data.error) {
+            document.getElementById('profileName').value = data.name || '';
+            document.getElementById('profileEmail').value = data.email || '';
+            document.getElementById('profileBio').value = data.profile.bio || '';
+            document.getElementById('profileUni').value = data.profile.university || '';
+            
+            if(data.profile.learningStyle) {
+              document.getElementById('profileLearningStyle').value = data.profile.learningStyle;
+            }
 
-  if (window.innerWidth < 768 && !hasSeenSplash) {
-    sessionStorage.setItem("splashShown", "true");
-
-    setTimeout(() => {
-      splash.style.transition = "opacity 0.8s ease";
-      splash.style.opacity = "0";
-
-      setTimeout(() => {
-        splash.style.display = "none";
-      }, 800);
-
-    }, 4500);
-  } else {
-    splash.style.display = "none";
-  }
-});
-
-// Mobile Sidebar Toggle
-document.addEventListener('click', (e) => {
-  const sidebar = document.querySelector('.sidebar');
-  const menuBtn = document.querySelector('.mobile-menu-btn');
-  if (sidebar && menuBtn) {
-    if (menuBtn.contains(e.target)) {
-      // Menu button clicked
-    } else if (sidebar.classList.contains('open') && !sidebar.contains(e.target)) {
-      sidebar.classList.remove('open');
+            document.querySelectorAll('[data-user-name]').forEach(el => el.textContent = data.name);
+            const role = data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'Student';
+            document.querySelectorAll('[data-user-role]').forEach(el => el.textContent = role);
+          }
+        }).catch(() => { });
     }
-  }
-});
-</script>
+
+    function saveSettings() {
+      const name = document.getElementById('profileName').value;
+      const bio = document.getElementById('profileBio').value;
+      const university = document.getElementById('profileUni').value;
+      const learningStyle = document.getElementById('profileLearningStyle').value;
+
+      fetch('/api/profile', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ name, bio, university, learningStyle })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if(data.error) {
+          showToast(data.error);
+        } else {
+          showToast('Profile updated successfully!');
+          loadProfile();
+        }
+      });
+    }
+
+    window.addEventListener('load', loadProfile);
+
+    // Splash Screen
+    window.addEventListener("load", () => {
+      const splash = document.getElementById("splash");
+      const hasSeenSplash = sessionStorage.getItem("splashShown");
+      if (window.innerWidth < 768 && !hasSeenSplash) {
+        sessionStorage.setItem("splashShown", "true");
+        setTimeout(() => {
+          splash.style.transition = "opacity 0.8s ease";
+          splash.style.opacity = "0";
+          setTimeout(() => { splash.style.display = "none"; }, 800);
+        }, 4500);
+      } else {
+        if(splash) splash.style.display = "none";
+      }
+    });
+
+    // Mobile Sidebar Toggle
+    document.addEventListener('click', (e) => {
+      const sidebar = document.querySelector('.sidebar');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      if (sidebar && menuBtn) {
+        if (menuBtn.contains(e.target)) {
+          // Handled by onclick
+        } else if (sidebar.classList.contains('open') && !sidebar.contains(e.target)) {
+          sidebar.classList.remove('open');
+        }
+      }
+    });
+  </script>
 </body>
 
 </html>

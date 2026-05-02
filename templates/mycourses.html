@@ -195,36 +195,44 @@
       </div>
 
 <script>
-// Fetch Semesters Dynamically
-fetch('/api/semesters')
+// Fetch Courses Dynamically from the new EdTech API
+fetch('/api/courses')
   .then(res => res.json())
   .then(data => {
     const grid = document.getElementById('courseGrid');
     grid.innerHTML = '';
     
-    if(data.length === 0) {
+    const courses = data.courses || [];
+    const completedUnits = data.completedUnits || [];
+    
+    if(courses.length === 0) {
        document.getElementById('noResults').style.display = 'block';
        return;
     }
 
-    data.forEach(sem => {
+    courses.forEach(course => {
       let totalUnits = 0;
-      let completedUnits = 0;
+      let userDone = 0;
       
-      sem.subjects.forEach(sub => {
-        totalUnits += sub.units.length;
-        completedUnits += sub.units.filter(u => u.isCompleted).length;
+      course.chapters.forEach(chap => {
+        chap.units.forEach(unit => {
+          totalUnits++;
+          if(completedUnits.includes(unit._id)) userDone++;
+        });
       });
       
-      const progress = totalUnits > 0 ? Math.round((completedUnits / totalUnits) * 100) : 0;
-      const subjectsCount = sem.subjects.length;
+      const progress = totalUnits > 0 ? Math.round((userDone / totalUnits) * 100) : 0;
+      const status = progress === 100 ? 'completed' : (progress > 0 ? 'in-progress' : 'not-started');
       
       const icons = ['📘', '🚀', '🧠', '⚙️', '🌐', '📊', '⚡', '🎓'];
-      const icon = icons[(sem.semester - 1) % icons.length];
+      const icon = icons[Math.floor(Math.random() * icons.length)];
       
       const card = document.createElement('div');
       card.className = 'course-card';
-      card.onclick = () => window.location.href = `/semester?id=${sem.semester}`;
+      card.dataset.status = status;
+      card.dataset.name = course.title;
+      card.dataset.progress = progress;
+      card.onclick = () => window.location.href = `/course?id=${course._id}`;
       
       card.innerHTML = `
         <div class="course-banner" style="background:var(--header-bg)">
@@ -233,9 +241,10 @@ fetch('/api/semesters')
         <div style="padding:16px">
           <div class="flex items-start justify-between mb-2">
             <div>
-              <h3 class="font-semibold" style="font-size:15px;color:#1e1b4b">Semester ${sem.semester}</h3>
-              <p class="text-xs text-muted mt-1">${subjectsCount} Subjects</p>
+              <h3 class="font-semibold" style="font-size:15px;color:#1e1b4b">${course.title}</h3>
+              <p class="text-xs text-muted mt-1">${course.chapters.length} Chapters • ${totalUnits} Units</p>
             </div>
+            <span class="badge ${progress === 100 ? 'badge-green' : 'badge-accent'}">${progress === 100 ? 'Completed' : 'In Progress'}</span>
           </div>
           <div class="mb-3 mt-4">
             <div class="flex justify-between mb-1"><span class="text-xs text-muted">Progress</span><span class="text-xs font-bold text-primary">${progress}%</span></div>
@@ -246,8 +255,10 @@ fetch('/api/semesters')
       
       grid.appendChild(card);
     });
+    
+    lucide.createIcons();
   })
-  .catch(err => console.error('Error fetching semesters:', err));
+  .catch(err => console.error('Error fetching courses:', err));tching semesters:', err));
 </script>
 
       <!-- No results message -->
