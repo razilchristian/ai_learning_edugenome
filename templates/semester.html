@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - Semester Subjects</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<script src="/static/js/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.subject-card {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 20px;
+  transition: all 0.25s;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.subject-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(37,99,235,0.12);
+  border-color: var(--accent);
+}
+.course-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 1100px) { .course-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px)  { .course-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div id="splash"></div>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/mycourses"><button class="nav-btn active"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div>
+        <h2 class="font-bold" style="font-size:20px;color:#fff" id="semesterTitle">Semester</h2>
+        <p class="text-sm" style="color:rgba(255,255,255,0.75)">Select a subject to view units</p>
+      </div>
+      <div class="header-actions">
+        <a href="/mycourses" style="color:white;text-decoration:none;"><i data-lucide="arrow-left" style="width:20px;height:20px"></i> Back to Courses</a>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="course-grid" id="subjectsGrid">
+        <p>Loading subjects...</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splash");
+  if(splash) splash.style.display = "none";
+});
+
+const urlParams = new URLSearchParams(window.location.search);
+const semesterId = urlParams.get('id');
+
+fetch(`/api/semesters/${semesterId}`)
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('semesterTitle').textContent = `Semester ${data.semester}`;
+    const grid = document.getElementById('subjectsGrid');
+    grid.innerHTML = '';
+    data.subjects.forEach(subject => {
+      const completedUnits = subject.units.filter(u => u.isCompleted).length;
+      const totalUnits = subject.units.length;
+      const progressPercent = totalUnits > 0 ? Math.round((completedUnits / totalUnits) * 100) : 0;
+      
+      const card = document.createElement('div');
+      card.className = 'subject-card';
+      card.onclick = () => window.location.href = `/subject?id=${subject._id}`;
+      card.innerHTML = `
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">${subject.name}</h3>
+        <p style="font-size: 14px; color: var(--muted-foreground); margin-bottom: 16px;">${subject.description}</p>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
+            <span>Progress: ${progressPercent}%</span>
+            <span>${totalUnits} Units</span>
+        </div>
+        <div class="progress">
+            <div class="progress-bar" style="width: ${progressPercent}%"></div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  })
+  .catch(err => console.error(err));
+</script>
+<script>
+  fetch('/api/me').then(r => r.json()).then(u => {
+    if (u && u.role) {
+      localStorage.setItem('edugenome-role', u.role);
+      var theme = localStorage.getItem('theme_' + u.role) || 'purple';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }).catch(() => {});
+</script>
+</body>
+</html>

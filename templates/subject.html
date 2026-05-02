@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - Subject Units</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<script src="/static/js/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.unit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.unit-item {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.unit-item:hover {
+  background: var(--secondary);
+  border-color: var(--accent);
+}
+.unit-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.unit-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--accent-light-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+.unit-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.completed-text { color: #16a34a; font-weight: 500; }
+.locked-text { color: var(--muted-foreground); }
+</style>
+</head>
+<body>
+<div id="splash"></div>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/mycourses"><button class="nav-btn active"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div>
+        <h2 class="font-bold" style="font-size:20px;color:#fff" id="subjectTitle">Subject</h2>
+        <p class="text-sm" style="color:rgba(255,255,255,0.75)" id="subjectDesc">Loading...</p>
+      </div>
+      <div class="header-actions">
+        <a href="#" id="backLink" style="color:white;text-decoration:none;"><i data-lucide="arrow-left" style="width:20px;height:20px"></i> Back to Semester</a>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Course Units</div>
+        </div>
+        <div class="card-content">
+          <div class="unit-list" id="unitsList">
+            <p>Loading units...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+lucide.createIcons();
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splash");
+  if(splash) splash.style.display = "none";
+});
+
+const urlParams = new URLSearchParams(window.location.search);
+const subjectId = urlParams.get('id');
+
+fetch(`/api/subjects/${subjectId}`)
+  .then(res => res.json())
+  .then(data => {
+    const subject = data.subject;
+    document.getElementById('subjectTitle').textContent = subject.name;
+    document.getElementById('subjectDesc').textContent = subject.description;
+    document.getElementById('backLink').href = `/semester?id=${data.semester}`;
+    
+    const list = document.getElementById('unitsList');
+    list.innerHTML = '';
+    
+    subject.units.forEach((unit, index) => {
+      let icon = 'file-text';
+      if (unit.contentType === 'video') icon = 'play-circle';
+      else if (unit.contentType === 'ppt') icon = 'presentation';
+
+      let statusHtml = unit.isCompleted 
+        ? `<span class="completed-text"><i data-lucide="check-circle-2" style="width:16px;height:16px"></i> Completed</span>`
+        : `<span class="locked-text">Pending</span>`;
+
+      const item = document.createElement('div');
+      item.className = 'unit-item';
+      item.onclick = () => window.location.href = `/unit?id=${unit._id}`;
+      item.innerHTML = `
+        <div class="unit-info">
+          <div class="unit-icon"><i data-lucide="${icon}"></i></div>
+          <div>
+            <h4 style="font-weight: 500; margin-bottom: 4px;">${unit.title}</h4>
+            <div style="font-size: 12px; color: var(--muted-foreground)">Duration: ${unit.duration}</div>
+          </div>
+        </div>
+        <div class="unit-status">
+          ${statusHtml}
+        </div>
+      `;
+      list.appendChild(item);
+    });
+    lucide.createIcons();
+  })
+  .catch(err => console.error(err));
+</script>
+<script>
+  fetch('/api/me').then(r => r.json()).then(u => {
+    if (u && u.role) {
+      localStorage.setItem('edugenome-role', u.role);
+      var theme = localStorage.getItem('theme_' + u.role) || 'purple';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }).catch(() => {});
+</script>
+</body>
+</html>

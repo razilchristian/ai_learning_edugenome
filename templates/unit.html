@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduGenome - Unit Content</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<script src="/static/js/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.content-viewer {
+  background: #0f172a;
+  border-radius: var(--radius);
+  aspect-ratio: 16/9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-bottom: 20px;
+}
+.content-viewer i {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+.unit-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+</style>
+</head>
+<body>
+<div id="splash"></div>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="/"><i data-lucide="brain" style="width:32px;height:32px;color:#a5b4fc"></i><span class="logo-text">EduGenome</span></a>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/student"><button class="nav-btn"><i data-lucide="layout-dashboard" style="width:16px;height:16px"></i>Dashboard</button></a>
+      <a href="/mycourses"><button class="nav-btn active"><i data-lucide="book-open" style="width:16px;height:16px"></i>My Courses</button></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-header">
+      <button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')"><i data-lucide="menu" style="width:24px;height:24px"></i></button>
+      <div>
+        <h2 class="font-bold" style="font-size:20px;color:#fff" id="unitTitle">Unit</h2>
+        <p class="text-sm" style="color:rgba(255,255,255,0.75)">Content Viewer</p>
+      </div>
+      <div class="header-actions">
+        <a href="#" id="backLink" style="color:white;text-decoration:none;"><i data-lucide="arrow-left" style="width:20px;height:20px"></i> Back to Subject</a>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="card">
+        <div class="card-content">
+          <div class="content-viewer" id="contentViewer">
+            <i data-lucide="video"></i>
+            <h3>Loading Content...</h3>
+          </div>
+          <div class="unit-actions">
+            <button class="btn btn-primary" id="completeBtn" onclick="markComplete()">
+              <i data-lucide="check-circle"></i> Mark as Completed
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <i data-lucide="check-circle" style="width:16px;height:16px;color:#4ade80"></i>
+  <span id="toastMsg">Action successful!</span>
+</div>
+
+<script>
+lucide.createIcons();
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splash");
+  if(splash) splash.style.display = "none";
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  lucide.createIcons();
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+const urlParams = new URLSearchParams(window.location.search);
+const unitId = urlParams.get('id');
+
+fetch(`/api/unit/${unitId}`)
+  .then(res => res.json())
+  .then(data => {
+    const unit = data.unit;
+    document.getElementById('unitTitle').textContent = unit.title;
+    document.getElementById('backLink').href = `/subject?id=${data.subjectId}`;
+    
+    const viewer = document.getElementById('contentViewer');
+    let icon = 'file-text';
+    if (unit.contentType === 'video') icon = 'video';
+    else if (unit.contentType === 'ppt') icon = 'presentation';
+
+    viewer.innerHTML = `
+      <i data-lucide="${icon}"></i>
+      <h3 style="margin-bottom: 8px;">${unit.title}</h3>
+      <p style="opacity: 0.7; font-size: 14px;">Placeholder for ${unit.contentType} content player</p>
+      <p style="opacity: 0.5; font-size: 12px; margin-top: 4px;">Duration: ${unit.duration}</p>
+    `;
+    lucide.createIcons();
+
+    if (unit.isCompleted) {
+      const btn = document.getElementById('completeBtn');
+      btn.innerHTML = '<i data-lucide="check-circle-2"></i> Completed';
+      btn.classList.remove('btn-primary');
+      btn.classList.add('btn-secondary');
+      btn.disabled = true;
+      lucide.createIcons();
+    }
+  })
+  .catch(err => console.error(err));
+
+function markComplete() {
+  fetch(`/api/unit/${unitId}/complete`, { method: 'PATCH' })
+    .then(res => res.json())
+    .then(data => {
+      showToast('Unit marked as completed!');
+      const btn = document.getElementById('completeBtn');
+      btn.innerHTML = '<i data-lucide="check-circle-2"></i> Completed';
+      btn.classList.remove('btn-primary');
+      btn.classList.add('btn-secondary');
+      btn.disabled = true;
+      lucide.createIcons();
+    })
+    .catch(err => console.error(err));
+}
+</script>
+<script>
+  fetch('/api/me').then(r => r.json()).then(u => {
+    if (u && u.role) {
+      localStorage.setItem('edugenome-role', u.role);
+      var theme = localStorage.getItem('theme_' + u.role) || 'purple';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }).catch(() => {});
+</script>
+</body>
+</html>

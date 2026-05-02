@@ -57,6 +57,28 @@ const QuizSchema = new mongoose.Schema({
 
 const Quiz = mongoose.models.Quiz || mongoose.model('Quiz', QuizSchema);
 
+// ================= COURSE MODEL =================
+const CourseSchema = new mongoose.Schema({
+    semester: Number,
+    subjects: [
+        {
+            name: String,
+            description: String,
+            units: [
+                {
+                    title: String,
+                    contentType: String, // video, ppt, notes
+                    contentUrl: String,
+                    duration: String,
+                    isCompleted: { type: Boolean, default: false }
+                }
+            ]
+        }
+    ]
+});
+
+const Course = mongoose.models.Course || mongoose.model('Course', CourseSchema);
+
 // ================= MIDDLEWARE =================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -309,6 +331,97 @@ app.get('/failure-prediction', authenticate, (req, res) => {
 
 app.get('/settings', authenticate, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'templates', 'settings.html'));
+});
+
+// ================= COURSE APIS =================
+app.get('/api/semesters', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const courses = await Course.find({}, 'semester subjects.name subjects.units').sort({ semester: 1 });
+        res.json(courses);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch semesters' });
+    }
+});
+
+app.get('/api/semesters/:id', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const course = await Course.findOne({ semester: parseInt(req.params.id) });
+        if (!course) return res.status(404).json({ error: 'Semester not found' });
+        res.json(course);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch semester' });
+    }
+});
+
+app.get('/api/subjects/:id', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const course = await Course.findOne({ 'subjects._id': req.params.id });
+        if (!course) return res.status(404).json({ error: 'Subject not found' });
+        const subject = course.subjects.id(req.params.id);
+        res.json({ subject, semester: course.semester });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch subject' });
+    }
+});
+
+app.get('/api/unit/:id', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const course = await Course.findOne({ 'subjects.units._id': req.params.id });
+        if (!course) return res.status(404).json({ error: 'Unit not found' });
+        
+        let unitFound = null;
+        let subjectFound = null;
+        for (const subject of course.subjects) {
+            const unit = subject.units.id(req.params.id);
+            if (unit) {
+                unitFound = unit;
+                subjectFound = subject;
+                break;
+            }
+        }
+        res.json({ unit: unitFound, subjectId: subjectFound._id });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch unit' });
+    }
+});
+
+app.patch('/api/unit/:id/complete', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const course = await Course.findOne({ 'subjects.units._id': req.params.id });
+        if (!course) return res.status(404).json({ error: 'Unit not found' });
+        
+        let unitFound = null;
+        for (const subject of course.subjects) {
+            const unit = subject.units.id(req.params.id);
+            if (unit) {
+                unit.isCompleted = true;
+                unitFound = unit;
+                break;
+            }
+        }
+        await course.save();
+        res.json({ message: 'Unit completed', unit: unitFound });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update unit' });
+    }
+});
+
+// ================= COURSE PAGES =================
+app.get('/semester', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'semester.html'));
+});
+
+app.get('/subject', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'subject.html'));
+});
+
+app.get('/unit', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'unit.html'));
 });
 
 // ================= EXPORT =================
