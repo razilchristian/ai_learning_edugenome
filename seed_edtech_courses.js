@@ -23,19 +23,32 @@ const CourseSchema = new mongoose.Schema({
 
 const Course = mongoose.models.Course || mongoose.model('Course', CourseSchema);
 
-// Helper to generate a quiz question
 function q(question, options, answer) {
     return { question, options, answer };
 }
 
-// Helper for a unit
+// Unit WITHOUT media (most subjects — content not uploaded yet)
 function unit(title) {
+    return {
+        title,
+        videoUrl: "",
+        pdfUrl: "",
+        quiz: [
+            q(`What is ${title}?`, ["Option A", "Option B", "Option C", "Option D"], "Option A")
+        ]
+    };
+}
+
+// Unit WITH real media (only for Algorithm subject)
+function algoUnit(title) {
     return {
         title,
         videoUrl: "/videos/unit1-algorithm.mp4",
         pdfUrl: "/pdfs/unit1-algorithm.pdf",
         quiz: [
-            q(`What is ${title}?`, ["Option A", "Option B", "Option C", "Option D"], "Option A")
+            q(`What is ${title}?`,
+              ["A fundamental concept", "Not related to algorithms", "A hardware component", "None of the above"],
+              "A fundamental concept")
         ]
     };
 }
@@ -70,7 +83,8 @@ const semesters = [
         title: "Semester 3 – Systems & Algorithms",
         description: "Deep dive into algorithms and system-level programming.",
         chapters: [
-            { title: "Design & Analysis of Algorithms", units: [unit("Sorting Algorithms"), unit("Dynamic Programming"), unit("Greedy Algorithms")] },
+            // ★ This is the ONLY subject with real video/PDF content
+            { title: "Design & Analysis of Algorithms", units: [algoUnit("Sorting Algorithms"), algoUnit("Dynamic Programming"), algoUnit("Greedy Algorithms")] },
             { title: "Database Management Systems", units: [unit("SQL Fundamentals"), unit("Normalization"), unit("Transactions")] },
             { title: "Operating Systems", units: [unit("Process Management"), unit("Memory Management"), unit("File Systems")] },
             { title: "Computer Networks", units: [unit("OSI Model"), unit("TCP/IP"), unit("Routing Protocols")] },
