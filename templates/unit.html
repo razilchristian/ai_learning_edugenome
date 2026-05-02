@@ -106,16 +106,38 @@ fetch(`/api/unit/${unitId}`)
     document.getElementById('backLink').href = `/subject?id=${data.subjectId}`;
     
     const viewer = document.getElementById('contentViewer');
-    let icon = 'file-text';
-    if (unit.contentType === 'video') icon = 'video';
-    else if (unit.contentType === 'ppt') icon = 'presentation';
-
-    viewer.innerHTML = `
-      <i data-lucide="${icon}"></i>
-      <h3 style="margin-bottom: 8px;">${unit.title}</h3>
-      <p style="opacity: 0.7; font-size: 14px;">Placeholder for ${unit.contentType} content player</p>
-      <p style="opacity: 0.5; font-size: 12px; margin-top: 4px;">Duration: ${unit.duration}</p>
-    `;
+    
+    // Reusable UnitContent rendering logic
+    if (unit.contentType === 'video') {
+      viewer.innerHTML = `
+        <video controls width="100%" style="border-radius: var(--radius); max-height: 100%;">
+          <!-- Using placeholder video but in production this would be unit.contentUrl -->
+          <source src="/videos/unit1-algorithm.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      `;
+      viewer.style.background = 'transparent';
+    } else if (unit.contentType === 'notes' || unit.contentType === 'ppt') {
+      viewer.innerHTML = `
+        <i data-lucide="file-text"></i>
+        <h3 style="margin-bottom: 16px;">${unit.title}</h3>
+        <!-- Using placeholder pdf but in production this would be unit.contentUrl -->
+        <a href="/pdfs/unit1-algorithm.pdf" target="_blank" class="btn btn-outline" style="background: white; color: var(--foreground);">
+          View Notes
+        </a>
+        <p style="opacity: 0.5; font-size: 12px; margin-top: 16px;">Duration: ${unit.duration}</p>
+      `;
+      viewer.style.background = '#0f172a';
+    } else {
+      let icon = 'file-text';
+      viewer.innerHTML = `
+        <i data-lucide="${icon}"></i>
+        <h3 style="margin-bottom: 8px;">${unit.title}</h3>
+        <p style="opacity: 0.7; font-size: 14px;">Placeholder for ${unit.contentType} content player</p>
+        <p style="opacity: 0.5; font-size: 12px; margin-top: 4px;">Duration: ${unit.duration}</p>
+      `;
+      viewer.style.background = '#0f172a';
+    }
     lucide.createIcons();
 
     if (unit.isCompleted) {

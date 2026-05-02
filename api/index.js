@@ -87,6 +87,9 @@ app.use(cookieParser());
 // ================= SIMPLE STATIC FILE SERVING =================
 // Serve static files from the static folder
 app.use('/static', express.static(path.join(__dirname, '..', 'static')));
+// Serve public media content
+app.use('/videos', express.static(path.join(__dirname, '..', 'public', 'videos')));
+app.use('/pdfs', express.static(path.join(__dirname, '..', 'public', 'pdfs')));
 
 // ================= AUTH =================
 const authenticate = (req, res, next) => {
