@@ -36,7 +36,13 @@ const UserSchema = new mongoose.Schema({
     name: String,
     email: { type: String, unique: true },
     password: String,
-    role: String
+    role: String,
+    profile: {
+        bio: { type: String, default: '' },
+        university: { type: String, default: '' },
+        learningStyle: { type: String, default: '' }
+    },
+    completedUnits: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Unit' }]
 });
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
@@ -59,18 +65,17 @@ const Quiz = mongoose.models.Quiz || mongoose.model('Quiz', QuizSchema);
 
 // ================= COURSE MODEL =================
 const CourseSchema = new mongoose.Schema({
-    semester: Number,
-    subjects: [
+    title: String,
+    description: String,
+    chapters: [
         {
-            name: String,
-            description: String,
+            title: String,
             units: [
                 {
                     title: String,
-                    contentType: String, // video, ppt, notes
-                    contentUrl: String,
-                    duration: String,
-                    isCompleted: { type: Boolean, default: false }
+                    videoUrl: String,
+                    pdfUrl: String,
+                    quiz: [{ question: String, options: [String], answer: String }]
                 }
             ]
         }
@@ -163,12 +168,54 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.get('/api/me', authenticate, (req, res) => {
-    res.json({
-        name: req.user.name || '',
-        email: req.user.email || '',
-        role: req.user.role || ''
-    });
+app.get('/api/me', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const user = await User.findById(req.user.id);
+        res.json({
+            name: user ? user.name : req.user.name || '',
+            email: user ? user.email : req.user.email || '',
+            role: req.user.role || ''
+        });
+    } catch (err) {
+        res.json({ name: req.user.name, email: req.user.email, role: req.user.role });
+    }
+});
+
+app.get('/api/profile', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json({
+            name: user.name,
+            email: user.email,
+            profile: user.profile || {},
+            completedUnits: user.completedUnits || []
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch profile' });
+    }
+});
+
+app.put('/api/profile', authenticate, async (req, res) => {
+    try {
+        await connectDB();
+        const { name, bio, university, learningStyle } = req.body;
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        
+        if (name) user.name = name;
+        if (!user.profile) user.profile = {};
+        if (bio !== undefined) user.profile.bio = bio;
+        if (university !== undefined) user.profile.university = university;
+        if (learningStyle !== undefined) user.profile.learningStyle = learningStyle;
+        
+        await user.save();
+        res.json({ message: 'Profile updated successfully', profile: user.profile });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update profile' });
+    }
 });
 
 app.get('/logout', (req, res) => {
@@ -337,94 +384,53 @@ app.get('/settings', authenticate, (req, res) => {
 });
 
 // ================= COURSE APIS =================
-app.get('/api/semesters', authenticate, async (req, res) => {
+app.get('/api/courses', authenticate, async (req, res) => {
     try {
         await connectDB();
-        const courses = await Course.find({}, 'semester subjects.name subjects.units').sort({ semester: 1 });
-        res.json(courses);
+        // Fetch courses and populate progress
+        const courses = await Course.find({}, 'title description chapters.title chapters.units.title');
+        const user = await User.findById(req.user.id);
+        res.json({ courses, completedUnits: user?.completedUnits || [] });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch semesters' });
+        res.status(500).json({ error: 'Failed to fetch courses' });
     }
 });
 
-app.get('/api/semesters/:id', authenticate, async (req, res) => {
+app.get('/api/courses/:id', authenticate, async (req, res) => {
     try {
         await connectDB();
-        const course = await Course.findOne({ semester: parseInt(req.params.id) });
-        if (!course) return res.status(404).json({ error: 'Semester not found' });
-        res.json(course);
+        const course = await Course.findById(req.params.id);
+        if (!course) return res.status(404).json({ error: 'Course not found' });
+        const user = await User.findById(req.user.id);
+        res.json({ course, completedUnits: user?.completedUnits || [] });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch semester' });
-    }
-});
-
-app.get('/api/subjects/:id', authenticate, async (req, res) => {
-    try {
-        await connectDB();
-        const course = await Course.findOne({ 'subjects._id': req.params.id });
-        if (!course) return res.status(404).json({ error: 'Subject not found' });
-        const subject = course.subjects.id(req.params.id);
-        res.json({ subject, semester: course.semester });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch subject' });
-    }
-});
-
-app.get('/api/unit/:id', authenticate, async (req, res) => {
-    try {
-        await connectDB();
-        const course = await Course.findOne({ 'subjects.units._id': req.params.id });
-        if (!course) return res.status(404).json({ error: 'Unit not found' });
-        
-        let unitFound = null;
-        let subjectFound = null;
-        for (const subject of course.subjects) {
-            const unit = subject.units.id(req.params.id);
-            if (unit) {
-                unitFound = unit;
-                subjectFound = subject;
-                break;
-            }
-        }
-        res.json({ unit: unitFound, subjectId: subjectFound._id });
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch unit' });
+        res.status(500).json({ error: 'Failed to fetch course' });
     }
 });
 
 app.patch('/api/unit/:id/complete', authenticate, async (req, res) => {
     try {
         await connectDB();
-        const course = await Course.findOne({ 'subjects.units._id': req.params.id });
-        if (!course) return res.status(404).json({ error: 'Unit not found' });
+        const { id } = req.params;
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
         
-        let unitFound = null;
-        for (const subject of course.subjects) {
-            const unit = subject.units.id(req.params.id);
-            if (unit) {
-                unit.isCompleted = true;
-                unitFound = unit;
-                break;
-            }
+        // Ensure unit ID is added to user's completed units without duplicates
+        const unitIdStr = id.toString();
+        const isCompleted = user.completedUnits.some(uId => uId.toString() === unitIdStr);
+        if (!isCompleted) {
+            user.completedUnits.push(id);
+            await user.save();
         }
-        await course.save();
-        res.json({ message: 'Unit completed', unit: unitFound });
+        res.json({ message: 'Unit marked as completed', completedUnits: user.completedUnits });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to update unit' });
+        res.status(500).json({ error: 'Failed to update progress' });
     }
 });
 
 // ================= COURSE PAGES =================
-app.get('/semester', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'templates', 'semester.html'));
-});
-
-app.get('/subject', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'templates', 'subject.html'));
-});
-
-app.get('/unit', authenticate, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'templates', 'unit.html'));
+app.get('/course', authenticate, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'templates', 'course.html'));
 });
 
 // ================= EXPORT =================
